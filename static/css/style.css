@@ -490,3 +490,163 @@ button:hover,
     display: inline-block;
     padding: 0.75rem 1.5rem;
 }
+
+/* Daftar Template */
+.admin-template-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+.admin-template-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    position: relative;
+    transition: box-shadow 0.3s ease;
+    cursor: pointer; /* Bisa diklik untuk preview */
+}
+.admin-template-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.admin-template-card img { width: 100px; height: 70px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc; }
+.admin-template-card .info h4 { margin: 0 0 0.25rem 0; font-size: 1rem; color: #333; }
+.admin-template-card .info p { margin: 0; font-size: 0.8rem; color: #666; }
+.admin-template-card .delete-btn { position: absolute; top: 10px; right: 10px; background: #e53935; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 16px; font-weight: bold; line-height: 28px; text-align: center; cursor: pointer; opacity: 0; transform: scale(0.8); transition: all 0.3s ease; z-index: 2; }
+.admin-template-card:hover .delete-btn { opacity: 1; transform: scale(1); }
+
+/* Layout Editor Visual */
+.visual-editor-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 2rem;
+}
+.editor-form-panel hr { margin: 1.5rem 0; }
+#add-field-btn { width: 100%; }
+
+/* Kanvas Editor */
+#canvas-wrapper {
+    position: relative;
+    width: 100%;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+}
+#editor-canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+#draggable-container {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+}
+
+/* Elemen Teks Draggable */
+.draggable-field {
+    position: absolute;
+    cursor: grab;
+    padding: 5px;
+    border: 1px dashed rgba(0, 0, 0, 0.5);
+    user-select: none;
+    white-space: nowrap;
+}
+.draggable-field.active {
+    border: 2px solid #3f51b5;
+    z-index: 10;
+    cursor: grabbing;
+}
+
+/* Panel Properti */
+.property-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 6px;
+    padding: 10px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 220px;
+}
+.property-panel label { font-size: 0.8rem; font-weight: 600; }
+.property-panel input, .property-panel select {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+input[type="color"] {
+    padding: 0;
+    height: 28px;
+}
+
+/* Daftar Field di Panel Kiri */
+#fields-list .field-item {
+    background: #f0f2f5;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease;
+}
+#fields-list .field-item.active {
+    border-color: #3f51b5;
+}
+#fields-list .field-item strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Modal Preview */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 90%;
+    max-height: 90%;
+    position: relative;
+}
+.close-modal-btn {
+    position: absolute;
+    top: 10px; right: 15px;
+    font-size: 1.8rem;
+    cursor: pointer;
+}
+#modal-canvas {
+    max-width: 80vw;
+    max-height: 80vh;
+    width: auto;
+    height: auto;
+}
+
+/* Responsive untuk Admin Panel */
+@media (max-width: 992px) {
+    .visual-editor-layout {
+        grid-template-columns: 1fr;
+    }
+}

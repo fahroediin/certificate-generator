@@ -26,48 +26,58 @@
         <section>
             <h2>Tambah / Edit Template Baru</h2>
             <form id="add-template-form" class="admin-form">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="template-id">ID Template (unik, tanpa spasi, cth: 'lomba_desain_2024')</label>
-                        <input type="text" id="template-id" required>
+                <!-- **EDITOR VISUAL BARU** -->
+                <div class="visual-editor-layout">
+                    <!-- Panel Kiri: Form Isian -->
+                    <div class="editor-form-panel">
+                        <div class="form-group">
+                            <label for="template-id">ID Template (unik, tanpa spasi)</label>
+                            <input type="text" id="template-id" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="template-name">Nama Tampilan</label>
+                            <input type="text" id="template-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="template-category">Kategori</label>
+                            <input type="text" id="template-category" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="template-image">Gambar Latar Belakang (.png)</label>
+                            <input type="file" id="template-image" accept="image/png" required>
+                        </div>
+                        <hr>
+                        <h3>Fields (Teks Dinamis)</h3>
+                        <div id="fields-list">
+                            <!-- Daftar field akan muncul di sini -->
+                        </div>
+                        <button type="button" id="add-field-btn" class="button secondary">Tambah Field</button>
                     </div>
-                    <div class="form-group">
-                        <label for="template-name">Nama Tampilan (cth: 'Lomba Desain 2024')</label>
-                        <input type="text" id="template-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="template-category">Kategori</label>
-                        <input type="text" id="template-category" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="template-image">Gambar Latar Belakang (.png)</label>
-                        <input type="file" id="template-image" accept="image/png" required>
-                    </div>
-                </div>
 
-                <h3>Fields (Teks Dinamis)</h3>
-                <!-- **STRUKTUR BARU UNTUK FIELDS** -->
-                <div class="fields-wrapper">
-                    <div class="fields-header">
-                        <span>Nama Field</span>
-                        <span>Label Form</span>
-                        <span>Font</span>
-                        <span>Size</span>
-                        <span>Warna</span>
-                        <span>Align</span>
-                        <span>Posisi X</span>
-                        <span>Posisi Y</span>
-                        <span></span>
-                    </div>
-                    <div id="fields-container">
-                        <!-- Fields akan ditambahkan di sini oleh JS -->
+                    <!-- Panel Kanan: Kanvas Preview & Editor -->
+                    <div class="editor-preview-panel">
+                        <h3>Editor Visual</h3>
+                        <div id="canvas-wrapper">
+                            <canvas id="editor-canvas"></canvas>
+                            <div id="draggable-container">
+                                <!-- Elemen teks yang bisa di-drag akan muncul di sini -->
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <button type="button" id="add-field-btn" class="button secondary">Tambah Field</button>
                 <hr>
                 <button type="submit" class="button">Simpan Template</button>
             </form>
         </section>
+    </div>
+
+    <!-- Modal untuk Preview Template -->
+    <div id="preview-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <span class="close-modal-btn">&times;</span>
+            <h3 id="modal-title">Preview Template</h3>
+            <canvas id="modal-canvas"></canvas>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
