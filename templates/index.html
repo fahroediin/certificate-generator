@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Sertifikat Interaktif</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="wizard-header">
+            <h1>Generator Sertifikat Instan</h1>
+            <p>Buat sertifikat profesional dalam beberapa langkah mudah.</p>
+        </div>
+
+        <!-- Step 1: Pilih Kategori -->
+        <div id="step-1-category" class="wizard-step active">
+            <h2>Langkah 1: Pilih Jenis Sertifikat</h2>
+            <div id="category-selector" class="category-selector">
+                <!-- Kategori akan di-generate oleh JS -->
+            </div>
+        </div>
+
+        <!-- Step 2: Pilih Template -->
+        <div id="step-2-template" class="wizard-step">
+            <button class="back-btn" data-target="step-1-category">&larr; Kembali ke Pilihan Jenis</button>
+            <h2>Langkah 2: Pilih Desain Template</h2>
+            <div id="template-selector" class="template-selector">
+                <!-- Template akan di-generate oleh JS -->
+            </div>
+        </div>
+
+        <!-- Step 3: Isi Detail & Preview -->
+        <div id="step-3-details" class="wizard-step">
+            <button class="back-btn" data-target="step-2-template">&larr; Kembali ke Pilihan Template</button>
+            <h2>Langkah 3: Isi Detail & Upload Nama</h2>
+            <div class="details-layout">
+                <div class="form-panel">
+                    <form id="generator-form">
+                        <input type="hidden" name="template" id="selected-template-input">
+                        <div id="dynamic-fields">
+                            <!-- Form isian akan di-generate oleh JS -->
+                        </div>
+                        <div id="upload-section" class="hidden">
+                            <div class="form-group">
+                                <label for="names_file">Upload Daftar Nama (.xlsx)</label>
+                                <input type="file" id="names_file" name="names_file" accept=".xlsx" required>
+                                <small>Pastikan nama-nama berada di kolom pertama.</small>
+                            </div>
+                            <button type="submit" id="generate-btn">Generate Sertifikat</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="preview-panel">
+                    <h3>Live Preview</h3>
+                    <div id="preview-container">
+                        <img id="preview-bg" src="" alt="Template Preview">
+                        <div id="preview-overlays">
+                            <!-- Teks overlay akan di-generate oleh JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Loading & Result Popup -->
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <p>Sedang memproses... Mohon tunggu.</p>
+    </div>
+    <div id="result-popup" class="hidden">
+        <div class="popup-content">
+            <span class="close-btn">&times;</span>
+            <h2>Generasi Berhasil!</h2>
+            <a href="#" id="download-link" class="button" download>Download Semua (.zip)</a>
+        </div>
+    </div>
+
+    <script>
+        // Melewatkan data dari Flask ke JavaScript
+        const TEMPLATE_METADATA = JSON.parse('{{ metadata|safe }}');
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
