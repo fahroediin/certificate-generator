@@ -307,3 +307,34 @@ button:hover,
 .close-btn:hover {
     color: #333;
 }
+/* Tambahkan kode ini di bagian paling bawah file CSS Anda */
+
+.button.secondary {
+    background-color: #757575;
+    margin-top: 0.5rem;
+}
+.button.secondary:hover {
+    background-color: #616161;
+}
+
+#preview-gallery {
+    max-height: 50vh; /* Batasi tinggi galeri agar tidak terlalu panjang */
+    overflow-y: auto; /* Aktifkan scroll vertikal jika konten melebihi batas */
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    background-color: #f8f9fa;
+}
+
+#preview-gallery img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#preview-gallery img:last-child {
+    margin-bottom: 0;
+}

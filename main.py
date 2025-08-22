@@ -17,13 +17,11 @@ app.config['GENERATED_FOLDER'] = GENERATED_FOLDER
 
 @app.route('/')
 def index():
-    # Kirim metadata sebagai string JSON ke template
     metadata_json = json.dumps(TEMPLATE_METADATA)
     return render_template('index.html', metadata=metadata_json)
 
 @app.route('/generate', methods=['POST'])
 def generate():
-    # 1. Buat folder unik untuk sesi generasi ini
     session_id = str(int(time.time()))
     session_upload_path = os.path.join(app.config['UPLOAD_FOLDER'], session_id)
     session_generated_path = os.path.join(app.config['GENERATED_FOLDER'], session_id)
@@ -31,11 +29,9 @@ def generate():
     os.makedirs(session_generated_path, exist_ok=True)
 
     try:
-        # 2. Ambil data dari form
         form_data = request.form
         template_file = form_data.get('template')
         
-        # 3. Simpan file yang diupload (Excel & Logo)
         names_file = request.files['names_file']
         names_filepath = os.path.join(session_upload_path, secure_filename(names_file.filename))
         names_file.save(names_filepath)
@@ -46,29 +42,27 @@ def generate():
             logo_filepath = os.path.join(session_upload_path, secure_filename(logo_file.filename))
             logo_file.save(logo_filepath)
 
-        # 4. Baca nama dari Excel
         names = get_names_from_excel(names_filepath)
         if not names:
             return jsonify({'success': False, 'error': 'Tidak ada nama yang ditemukan di file Excel.'}), 400
 
-        # 5. Proses generasi sertifikat
         template_path = os.path.join(TEMPLATE_FOLDER, template_file)
         template_meta = TEMPLATE_METADATA[template_file]
-        generated_files = []
+        generated_files_paths = []
+        preview_urls = [] # <-- Variabel baru untuk menyimpan URL preview
 
         for i, name in enumerate(names):
-            # Siapkan data teks untuk template
             fields_data = {}
             for field, config in template_meta['fields'].items():
-                # Salin config dan tambahkan teks
                 fields_data[field] = config.copy()
                 if field == 'nama_penerima':
                     fields_data[field]['text'] = name
                 else:
-                    # Ambil teks dari form, misal 'deskripsi', 'judul_lomba'
                     fields_data[field]['text'] = form_data.get(field, '')
             
-            output_filename = f"sertifikat_{i+1}_{name.replace(' ', '_')}.png"
+            # Gunakan nama yang aman untuk URL
+            safe_name = "".join(c for c in name if c.isalnum() or c in (' ', '.')).rstrip()
+            output_filename = f"sertifikat_{i+1}_{safe_name.replace(' ', '_')}.png"
             output_path = os.path.join(session_generated_path, output_filename)
             
             create_certificate(
@@ -78,26 +72,25 @@ def generate():
                 logo_path=logo_filepath,
                 logo_config=template_meta.get('logo')
             )
-            generated_files.append(output_path)
+            generated_files_paths.append(output_path)
+            # Buat URL untuk setiap gambar dan tambahkan ke daftar
+            preview_urls.append(f'/generated/{session_id}/{output_filename}')
 
-        # 6. Buat file ZIP
         zip_filename = f"sertifikat_{session_id}.zip"
         zip_path = os.path.join(app.config['GENERATED_FOLDER'], zip_filename)
-        zip_files(generated_files, zip_path)
+        zip_files(generated_files_paths, zip_path)
 
-        # 7. Hapus folder sesi setelah di-zip
+        # Hapus folder upload, tapi JANGAN hapus folder generated dulu
         shutil.rmtree(session_upload_path)
-        shutil.rmtree(session_generated_path)
 
-        # 8. Kirim URL download ke frontend
+        # Kirim daftar URL preview ke frontend
         return jsonify({
             'success': True,
             'download_url': f'/download/{zip_filename}',
-            'preview_url': f'/preview/{session_id}/{os.path.basename(generated_files[0])}' # URL preview sertifikat pertama
+            'preview_urls': preview_urls # <-- Kirim daftar URL
         })
 
     except Exception as e:
-        # Jika terjadi error, hapus folder sesi
         shutil.rmtree(session_upload_path)
         shutil.rmtree(session_generated_path)
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -105,6 +98,12 @@ def generate():
 @app.route('/download/<filename>')
 def download(filename):
     return send_from_directory(app.config['GENERATED_FOLDER'], filename, as_attachment=True)
+
+# **RUTE BARU** untuk menyajikan gambar preview individual
+@app.route('/generated/<session_id>/<filename>')
+def serve_generated_file(session_id, filename):
+    session_path = os.path.join(app.config['GENERATED_FOLDER'], session_id)
+    return send_from_directory(session_path, filename)
 
 if __name__ == '__main__':
     app.run(debug=True)

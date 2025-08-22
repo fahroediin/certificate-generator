@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // ... (bagian atas file tetap sama) ...
+    // ... (Semua kode dari atas sampai checkFormCompletion() tetap sama) ...
     let currentStep = 1;
     const userSelection = {
         category: null,
@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('generator-form');
     const uploadSection = document.getElementById('upload-section');
     const selectedTemplateInput = document.getElementById('selected-template-input');
+    const resultPopup = document.getElementById('result-popup'); // Tambahkan ini
 
     function showStep(stepNumber) {
         steps.forEach(step => step.classList.remove('active'));
@@ -74,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updatePreviewFontSizes() {
         const previewWidth = previewContainer.offsetWidth;
         if (previewWidth === 0) return;
-        const baseTemplateWidth = 2000; // Sesuaikan dengan resolusi baru
+        const baseTemplateWidth = 2000;
         document.querySelectorAll('.preview-text').forEach(textElement => {
             const baseSize = parseFloat(textElement.dataset.baseSize);
             if (!isNaN(baseSize)) {
@@ -87,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderDetailsAndPreview(templateFile) {
         const meta = TEMPLATE_METADATA[templateFile];
         if (!meta) return;
-
         dynamicFieldsContainer.innerHTML = '';
         Object.entries(meta.fields).forEach(([name, config]) => {
             if (name === 'nama_penerima') return;
@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             dynamicFieldsContainer.appendChild(formGroup);
         });
-
         previewBg.src = `/static/templates_base/${templateFile}`;
         previewOverlays.innerHTML = '';
         Object.entries(meta.fields).forEach(([name, config]) => {
@@ -108,36 +107,30 @@ document.addEventListener('DOMContentLoaded', function() {
             textOverlay.id = `preview-${name}`;
             textOverlay.className = 'preview-text';
             textOverlay.dataset.baseSize = config.size;
-            
-            const containerWidth = 2000; // Sesuaikan dengan resolusi baru
-            const containerHeight = 1414; // Sesuaikan dengan resolusi baru
+            const containerWidth = 2000;
+            const containerHeight = 1414;
             textOverlay.style.left = `${(config.pos[0] / containerWidth) * 100}%`;
             textOverlay.style.top = `${(config.pos[1] / containerHeight) * 100}%`;
             textOverlay.style.fontFamily = config.font.includes('GreatVibes') ? "'Great Vibes', cursive" : "'Poppins', sans-serif";
             textOverlay.style.color = config.color;
             textOverlay.style.fontWeight = config.font.includes('Bold') ? 'bold' : 'normal';
-            
-            // **PERUBAHAN DI SINI: Menambahkan logika perataan CSS**
             const align = config.align || 'center';
             textOverlay.style.textAlign = align;
             if (align === 'center') {
                 textOverlay.style.transform = 'translateX(-50%)';
             } else if (align === 'right') {
                 textOverlay.style.transform = 'translateX(-100%)';
-            } else { // left
+            } else {
                 textOverlay.style.transform = 'translateX(0)';
             }
-
             if (name === 'nama_penerima') {
                 textOverlay.innerText = sampleNames[Math.floor(Math.random() * sampleNames.length)];
             } else {
                 const labelText = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 textOverlay.innerText = `[${labelText}]`;
             }
-            
             previewOverlays.appendChild(textOverlay);
         });
-
         addLivePreviewListeners();
         checkFormCompletion();
     }
@@ -166,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- FORM SUBMISSION ---
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         let isFormValid = true;
@@ -185,9 +179,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('/generate', { method: 'POST', body: formData });
             const result = await response.json();
             document.getElementById('loading-overlay').classList.add('hidden');
+
             if (result.success) {
+                // **PERUBAHAN LOGIKA POP-UP DI SINI**
                 document.getElementById('download-link').href = result.download_url;
-                document.getElementById('result-popup').classList.remove('hidden');
+                
+                const gallery = document.getElementById('preview-gallery');
+                gallery.innerHTML = ''; // Kosongkan galeri sebelumnya
+
+                result.preview_urls.forEach(url => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = 'Preview Sertifikat';
+                    gallery.appendChild(img);
+                });
+
+                resultPopup.classList.remove('hidden');
             } else {
                 alert('Terjadi kesalahan: ' + result.error);
             }
@@ -197,8 +204,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    document.querySelector('#result-popup .close-btn').addEventListener('click', () => {
-        document.getElementById('result-popup').classList.add('hidden');
+    resultPopup.querySelector('.close-btn').addEventListener('click', () => {
+        resultPopup.classList.add('hidden');
+    });
+
+    // **TAMBAHKAN EVENT LISTENER UNTUK TOMBOL BARU**
+    document.getElementById('regenerate-btn').addEventListener('click', () => {
+        resultPopup.classList.add('hidden');
     });
 
     renderCategories();
