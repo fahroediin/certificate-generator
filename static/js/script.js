@@ -74,6 +74,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- FUNGSI UNTUK UPDATE FONT SIZE ---
+    function updatePreviewFontSizes() {
+        const previewWidth = previewContainer.offsetWidth;
+        const baseTemplateWidth = 1200; // Lebar asli gambar template
+        
+        document.querySelectorAll('.preview-text').forEach(textElement => {
+            const baseSize = parseFloat(textElement.dataset.baseSize);
+            if (!isNaN(baseSize)) {
+                const responsiveSize = (baseSize / baseTemplateWidth) * previewWidth;
+                textElement.style.fontSize = `${responsiveSize}px`;
+            }
+        });
+    }
+
     // --- STEP 3: RENDER DETAILS & PREVIEW ---
     function renderDetailsAndPreview(templateFile) {
         const meta = TEMPLATE_METADATA[templateFile];
@@ -100,25 +114,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const textOverlay = document.createElement('div');
             textOverlay.id = `preview-${name}`;
             textOverlay.className = 'preview-text';
+            textOverlay.dataset.baseSize = config.size;
             
             const containerWidth = 1200;
             const containerHeight = 848;
             textOverlay.style.left = `${(config.pos[0] / containerWidth) * 100}%`;
             textOverlay.style.top = `${(config.pos[1] / containerHeight) * 100}%`;
             textOverlay.style.fontFamily = config.font.includes('GreatVibes') ? "'Great Vibes', cursive" : "'Poppins', sans-serif";
-            
-            // Responsive font size based on preview container width
-            const previewWidth = previewContainer.offsetWidth;
-            const responsiveFontSize = (config.size / containerWidth) * previewWidth;
-            textOverlay.style.fontSize = `${responsiveFontSize}px`;
-
             textOverlay.style.color = config.color;
             textOverlay.style.fontWeight = config.font.includes('Bold') ? 'bold' : 'normal';
             
-            textOverlay.innerText = name === 'nama_penerima' ? 'Nama Penerima' : `[${name.replace(/_/g, ' ')}]`;
+            // **FIX DI SINI:** Variabel labelText didefinisikan di dalam scope ini
+            const labelText = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            textOverlay.innerText = name === 'nama_penerima' ? 'Nama Penerima' : `[${labelText}]`;
+            
             previewOverlays.appendChild(textOverlay);
         });
 
+        updatePreviewFontSizes();
         addLivePreviewListeners();
         checkFormCompletion();
     }
@@ -129,7 +142,8 @@ document.addEventListener('DOMContentLoaded', function() {
             input.addEventListener('input', () => {
                 const previewEl = document.getElementById(`preview-${input.name}`);
                 if (previewEl) {
-                    previewEl.innerText = input.value || `[${input.name.replace(/_/g, ' ')}]`;
+                    const labelText = input.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    previewEl.innerText = input.value || `[${labelText}]`;
                 }
                 checkFormCompletion();
             });
@@ -176,4 +190,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- INITIALIZATION ---
     renderCategories();
     showStep(1);
+
+    window.addEventListener('resize', updatePreviewFontSizes);
 });
