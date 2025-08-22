@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // ... (Semua kode dari atas sampai checkFormCompletion() tetap sama) ...
     let currentStep = 1;
     const userSelection = {
         category: null,
@@ -16,7 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('generator-form');
     const uploadSection = document.getElementById('upload-section');
     const selectedTemplateInput = document.getElementById('selected-template-input');
-    const resultPopup = document.getElementById('result-popup'); // Tambahkan ini
+    const resultPopup = document.getElementById('result-popup');
+    const progressBar = document.getElementById('progress-bar');
 
     function showStep(stepNumber) {
         steps.forEach(step => step.classList.remove('active'));
@@ -27,7 +27,13 @@ document.addEventListener('DOMContentLoaded', function() {
             targetStep.classList.add('active');
         }
         currentStep = stepNumber;
-        if (stepNumber === 3) {
+
+        if (stepNumber === 1) {
+            progressBar.style.width = '33%';
+        } else if (stepNumber === 2) {
+            progressBar.style.width = '66%';
+        } else if (stepNumber === 3) {
+            progressBar.style.width = '100%';
             setTimeout(updatePreviewFontSizes, 50);
         }
     }
@@ -159,7 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- FORM SUBMISSION ---
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         let isFormValid = true;
@@ -169,38 +174,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 isFormValid = false;
             }
         });
+
+        // **PERUBAHAN DI SINI: Ganti alert() dengan Swal.fire()**
         if (!isFormValid) {
-            alert('Harap isi semua field yang wajib diisi sebelum generate.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Harap isi semua field yang wajib diisi sebelum generate.',
+            });
             return;
         }
+
         document.getElementById('loading-overlay').classList.remove('hidden');
         const formData = new FormData(form);
         try {
             const response = await fetch('/generate', { method: 'POST', body: formData });
             const result = await response.json();
             document.getElementById('loading-overlay').classList.add('hidden');
-
             if (result.success) {
-                // **PERUBAHAN LOGIKA POP-UP DI SINI**
                 document.getElementById('download-link').href = result.download_url;
-                
                 const gallery = document.getElementById('preview-gallery');
-                gallery.innerHTML = ''; // Kosongkan galeri sebelumnya
-
+                gallery.innerHTML = '';
                 result.preview_urls.forEach(url => {
                     const img = document.createElement('img');
                     img.src = url;
                     img.alt = 'Preview Sertifikat';
                     gallery.appendChild(img);
                 });
-
                 resultPopup.classList.remove('hidden');
             } else {
-                alert('Terjadi kesalahan: ' + result.error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan',
+                    text: result.error,
+                });
             }
         } catch (error) {
             document.getElementById('loading-overlay').classList.add('hidden');
-            alert('Gagal terhubung ke server.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Koneksi Gagal',
+                text: 'Tidak dapat terhubung ke server. Silakan coba lagi.',
+            });
         }
     });
     
@@ -208,7 +223,6 @@ document.addEventListener('DOMContentLoaded', function() {
         resultPopup.classList.add('hidden');
     });
 
-    // **TAMBAHKAN EVENT LISTENER UNTUK TOMBOL BARU**
     document.getElementById('regenerate-btn').addEventListener('click', () => {
         resultPopup.classList.add('hidden');
     });
