@@ -15,21 +15,20 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(GENERATED_FOLDER, exist_ok=True)
 
 # Definisi metadata untuk setiap template
-# Format: { 'nama_file': { 'fields': [...], 'logo': {...} } }
-# Koordinat (x, y) diukur dari pojok kiri atas.
+# 'align' bisa berisi: 'center', 'left', 'right'
 TEMPLATE_METADATA = {
     'achievement.png': {
         'category': 'Achievement',
         'preview_name': 'Modern Blue',
         'fields': {
-            'nama_penerima': {'pos': (600, 400), 'font': 'GreatVibes-Regular.ttf', 'size': 80, 'color': '#c5a47e'},
-            'asal_instansi': {'pos': (600, 470), 'font': 'Poppins-Regular.ttf', 'size': 24, 'color': '#333333'},
-            'deskripsi': {'pos': (600, 550), 'font': 'Poppins-Regular.ttf', 'size': 20, 'color': '#333333'},
-            'tanggal_acara': {'pos': (600, 620), 'font': 'Poppins-Bold.ttf', 'size': 20, 'color': '#333333'},
-            'penandatangan_1_nama': {'pos': (300, 800), 'font': 'Poppins-Bold.ttf', 'size': 22, 'color': '#333333'},
-            'penandatangan_1_jabatan': {'pos': (300, 830), 'font': 'Poppins-Regular.ttf', 'size': 18, 'color': '#555555'},
-            'penandatangan_2_nama': {'pos': (900, 800), 'font': 'Poppins-Bold.ttf', 'size': 22, 'color': '#333333'},
-            'penandatangan_2_jabatan': {'pos': (900, 830), 'font': 'Poppins-Regular.ttf', 'size': 18, 'color': '#555555'},
+            'nama_penerima': {'pos': (1000, 650), 'font': 'GreatVibes-Regular.ttf', 'size': 120, 'color': '#c5a47e', 'align': 'center'},
+            'asal_instansi': {'pos': (1000, 780), 'font': 'Poppins-Regular.ttf', 'size': 36, 'color': '#333333', 'align': 'center'},
+            'deskripsi': {'pos': (1000, 900), 'font': 'Poppins-Regular.ttf', 'size': 32, 'color': '#333333', 'align': 'center'},
+            'tanggal_acara': {'pos': (1000, 1000), 'font': 'Poppins-Bold.ttf', 'size': 32, 'color': '#333333', 'align': 'center'},
+            'penandatangan_1_nama': {'pos': (500, 1250), 'font': 'Poppins-Bold.ttf', 'size': 34, 'color': '#333333', 'align': 'center'},
+            'penandatangan_1_jabatan': {'pos': (500, 1295), 'font': 'Poppins-Regular.ttf', 'size': 28, 'color': '#555555', 'align': 'center'},
+            'penandatangan_2_nama': {'pos': (1500, 1250), 'font': 'Poppins-Bold.ttf', 'size': 34, 'color': '#333333', 'align': 'center'},
+            'penandatangan_2_jabatan': {'pos': (1500, 1295), 'font': 'Poppins-Regular.ttf', 'size': 28, 'color': '#555555', 'align': 'center'},
         },
         'logo': None
     },
@@ -37,10 +36,10 @@ TEMPLATE_METADATA = {
         'category': 'Competition',
         'preview_name': 'Elegant Black Gold',
         'fields': {
-            'nama_penerima': {'pos': (600, 450), 'font': 'GreatVibes-Regular.ttf', 'size': 100, 'color': '#333333'},
-            'deskripsi': {'pos': (600, 580), 'font': 'Poppins-Regular.ttf', 'size': 24, 'color': '#333333'},
-            'penandatangan_1_nama': {'pos': (600, 750), 'font': 'Poppins-Bold.ttf', 'size': 22, 'color': '#333333'},
-            'penandatangan_1_jabatan': {'pos': (600, 780), 'font': 'Poppins-Regular.ttf', 'size': 18, 'color': '#555555'},
+            'nama_penerima': {'pos': (1000, 750), 'font': 'GreatVibes-Regular.ttf', 'size': 180, 'color': '#333333', 'align': 'center'},
+            'deskripsi': {'pos': (1000, 980), 'font': 'Poppins-Regular.ttf', 'size': 40, 'color': '#333333', 'align': 'center'},
+            'penandatangan_1_nama': {'pos': (1000, 1250), 'font': 'Poppins-Bold.ttf', 'size': 36, 'color': '#333333', 'align': 'center'},
+            'penandatangan_1_jabatan': {'pos': (1000, 1300), 'font': 'Poppins-Regular.ttf', 'size': 30, 'color': '#555555', 'align': 'center'},
         },
         'logo': None
     },
@@ -48,12 +47,12 @@ TEMPLATE_METADATA = {
         'category': 'Participation',
         'preview_name': 'Geometric Gold',
         'fields': {
-            'nama_penerima': {'pos': (600, 450), 'font': 'GreatVibes-Regular.ttf', 'size': 100, 'color': '#333333'},
-            'deskripsi': {'pos': (600, 580), 'font': 'Poppins-Regular.ttf', 'size': 24, 'color': '#333333'},
-            'penandatangan_1_nama': {'pos': (350, 800), 'font': 'Poppins-Bold.ttf', 'size': 22, 'color': '#333333'},
-            'penandatangan_1_jabatan': {'pos': (350, 830), 'font': 'Poppins-Regular.ttf', 'size': 18, 'color': '#555555'},
-            'penandatangan_2_nama': {'pos': (850, 800), 'font': 'Poppins-Bold.ttf', 'size': 22, 'color': '#333333'},
-            'penandatangan_2_jabatan': {'pos': (850, 830), 'font': 'Poppins-Regular.ttf', 'size': 18, 'color': '#555555'},
+            'nama_penerima': {'pos': (1000, 750), 'font': 'GreatVibes-Regular.ttf', 'size': 180, 'color': '#333333', 'align': 'center'},
+            'deskripsi': {'pos': (1000, 980), 'font': 'Poppins-Regular.ttf', 'size': 40, 'color': '#333333', 'align': 'center'},
+            'penandatangan_1_nama': {'pos': (550, 1250), 'font': 'Poppins-Bold.ttf', 'size': 36, 'color': '#333333', 'align': 'center'},
+            'penandatangan_1_jabatan': {'pos': (550, 1300), 'font': 'Poppins-Regular.ttf', 'size': 30, 'color': '#555555', 'align': 'center'},
+            'penandatangan_2_nama': {'pos': (1450, 1250), 'font': 'Poppins-Bold.ttf', 'size': 36, 'color': '#333333', 'align': 'center'},
+            'penandatangan_2_jabatan': {'pos': (1450, 1300), 'font': 'Poppins-Regular.ttf', 'size': 30, 'color': '#555555', 'align': 'center'},
         },
         'logo': None
     },
@@ -61,10 +60,31 @@ TEMPLATE_METADATA = {
         'category': 'Appreciation',
         'preview_name': 'Minimalist Wave',
         'fields': {
-            'nama_penerima': {'pos': (600, 450), 'font': 'GreatVibes-Regular.ttf', 'size': 110, 'color': '#333333'},
-            'deskripsi': {'pos': (600, 600), 'font': 'Poppins-Regular.ttf', 'size': 20, 'color': '#555555'},
-            'penandatangan_1_jabatan': {'pos': (350, 800), 'font': 'Poppins-Regular.ttf', 'size': 20, 'color': '#555555'},
-            'penandatangan_2_jabatan': {'pos': (850, 800), 'font': 'Poppins-Regular.ttf', 'size': 20, 'color': '#555555'},
+            'nama_penerima': {'pos': (1000, 750), 'font': 'GreatVibes-Regular.ttf', 'size': 180, 'color': '#333333', 'align': 'center'},
+            'deskripsi': {'pos': (1000, 1000), 'font': 'Poppins-Regular.ttf', 'size': 32, 'color': '#555555', 'align': 'center'},
+            'penandatangan_1_jabatan': {'pos': (550, 1280), 'font': 'Poppins-Regular.ttf', 'size': 34, 'color': '#555555', 'align': 'center'},
+            'penandatangan_2_jabatan': {'pos': (1450, 1280), 'font': 'Poppins-Regular.ttf', 'size': 34, 'color': '#555555', 'align': 'center'},
+        },
+        'logo': None
+    },
+    'appreciation_2.png': {
+        'category': 'Appreciation',
+        'preview_name': 'Blue Floral',
+        'fields': {
+            'nama_penerima': {'pos': (1000, 750), 'font': 'GreatVibes-Regular.ttf', 'size': 180, 'color': '#333333', 'align': 'center'},
+            'deskripsi': {'pos': (1000, 1000), 'font': 'Poppins-Regular.ttf', 'size': 32, 'color': '#555555', 'align': 'center'},
+            'penandatangan_1_jabatan': {'pos': (1000, 1300), 'font': 'Poppins-Regular.ttf', 'size': 34, 'color': '#555555', 'align': 'center'},
+        },
+        'logo': None
+    },
+    'appreciation_3.png': {
+        'category': 'Appreciation',
+        'preview_name': 'Brown Abstract',
+        'fields': {
+            'nama_penerima': {'pos': (1000, 750), 'font': 'GreatVibes-Regular.ttf', 'size': 180, 'color': '#333333', 'align': 'center'},
+            'deskripsi': {'pos': (1000, 950), 'font': 'Poppins-Regular.ttf', 'size': 32, 'color': '#555555', 'align': 'center'},
+            'penandatangan_1_jabatan': {'pos': (550, 1280), 'font': 'Poppins-Regular.ttf', 'size': 34, 'color': '#555555', 'align': 'center'},
+            'penandatangan_2_jabatan': {'pos': (1450, 1280), 'font': 'Poppins-Regular.ttf', 'size': 34, 'color': '#555555', 'align': 'center'},
         },
         'logo': None
     }

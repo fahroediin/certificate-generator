@@ -1,13 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // State management
+    // ... (bagian atas file tetap sama) ...
     let currentStep = 1;
     const userSelection = {
         category: null,
         template: null,
     };
     const sampleNames = ['Ahmad Fauzi', 'Citra Lestari', 'Budi Santoso', 'Dewi Anggraini'];
-
-    // DOM Elements
     const steps = document.querySelectorAll('.wizard-step');
     const categorySelector = document.getElementById('category-selector');
     const templateSelector = document.getElementById('template-selector');
@@ -19,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadSection = document.getElementById('upload-section');
     const selectedTemplateInput = document.getElementById('selected-template-input');
 
-    // --- WIZARD NAVIGATION ---
     function showStep(stepNumber) {
         steps.forEach(step => step.classList.remove('active'));
         const targetStep = document.getElementById(`step-${stepNumber}-category`) ||
@@ -29,12 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
             targetStep.classList.add('active');
         }
         currentStep = stepNumber;
-
-        // **PERBAIKAN UTAMA DI SINI**
-        // Panggil update font size HANYA JIKA kita menampilkan Langkah 3,
-        // karena pada titik ini, container-nya sudah pasti terlihat.
         if (stepNumber === 3) {
-            // Diberi sedikit timeout untuk memastikan browser selesai rendering
             setTimeout(updatePreviewFontSizes, 50);
         }
     }
@@ -47,13 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // --- STEP 1: RENDER CATEGORIES ---
     function renderCategories() {
         const categories = [...new Set(Object.values(TEMPLATE_METADATA).map(t => t.category))];
         categorySelector.innerHTML = categories.map(cat => `
             <div class="category-card" data-category="${cat}">${cat}</div>
         `).join('');
-
         document.querySelectorAll('.category-card').forEach(card => {
             card.addEventListener('click', () => {
                 userSelection.category = card.dataset.category;
@@ -63,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- STEP 2: RENDER TEMPLATES ---
     function renderTemplates(category) {
         const filteredTemplates = Object.entries(TEMPLATE_METADATA).filter(([_, meta]) => meta.category === category);
         templateSelector.innerHTML = filteredTemplates.map(([filename, meta]) => `
@@ -72,24 +61,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span>${meta.preview_name}</span>
             </div>
         `).join('');
-
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', () => {
                 userSelection.template = card.dataset.template;
                 selectedTemplateInput.value = userSelection.template;
                 renderDetailsAndPreview(userSelection.template);
-                showStep(3); // Pindah ke langkah 3 setelah render
+                showStep(3);
             });
         });
     }
 
-    // --- FUNGSI UNTUK UPDATE FONT SIZE ---
     function updatePreviewFontSizes() {
         const previewWidth = previewContainer.offsetWidth;
-        if (previewWidth === 0) return; // Jangan lakukan apa-apa jika container masih tersembunyi
-        
-        const baseTemplateWidth = 1200;
-        
+        if (previewWidth === 0) return;
+        const baseTemplateWidth = 2000; // Sesuaikan dengan resolusi baru
         document.querySelectorAll('.preview-text').forEach(textElement => {
             const baseSize = parseFloat(textElement.dataset.baseSize);
             if (!isNaN(baseSize)) {
@@ -99,12 +84,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- STEP 3: RENDER DETAILS & PREVIEW ---
     function renderDetailsAndPreview(templateFile) {
         const meta = TEMPLATE_METADATA[templateFile];
         if (!meta) return;
 
-        // Render Form
         dynamicFieldsContainer.innerHTML = '';
         Object.entries(meta.fields).forEach(([name, config]) => {
             if (name === 'nama_penerima') return;
@@ -118,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
             dynamicFieldsContainer.appendChild(formGroup);
         });
 
-        // Render Preview
         previewBg.src = `/static/templates_base/${templateFile}`;
         previewOverlays.innerHTML = '';
         Object.entries(meta.fields).forEach(([name, config]) => {
@@ -127,14 +109,25 @@ document.addEventListener('DOMContentLoaded', function() {
             textOverlay.className = 'preview-text';
             textOverlay.dataset.baseSize = config.size;
             
-            const containerWidth = 1200;
-            const containerHeight = 848;
+            const containerWidth = 2000; // Sesuaikan dengan resolusi baru
+            const containerHeight = 1414; // Sesuaikan dengan resolusi baru
             textOverlay.style.left = `${(config.pos[0] / containerWidth) * 100}%`;
             textOverlay.style.top = `${(config.pos[1] / containerHeight) * 100}%`;
             textOverlay.style.fontFamily = config.font.includes('GreatVibes') ? "'Great Vibes', cursive" : "'Poppins', sans-serif";
             textOverlay.style.color = config.color;
             textOverlay.style.fontWeight = config.font.includes('Bold') ? 'bold' : 'normal';
             
+            // **PERUBAHAN DI SINI: Menambahkan logika perataan CSS**
+            const align = config.align || 'center';
+            textOverlay.style.textAlign = align;
+            if (align === 'center') {
+                textOverlay.style.transform = 'translateX(-50%)';
+            } else if (align === 'right') {
+                textOverlay.style.transform = 'translateX(-100%)';
+            } else { // left
+                textOverlay.style.transform = 'translateX(0)';
+            }
+
             if (name === 'nama_penerima') {
                 textOverlay.innerText = sampleNames[Math.floor(Math.random() * sampleNames.length)];
             } else {
@@ -145,7 +138,6 @@ document.addEventListener('DOMContentLoaded', function() {
             previewOverlays.appendChild(textOverlay);
         });
 
-        // **PERUBAHAN:** Panggilan updatePreviewFontSizes() dihapus dari sini
         addLivePreviewListeners();
         checkFormCompletion();
     }
@@ -174,10 +166,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- FORM SUBMISSION ---
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
         let isFormValid = true;
         const requiredInputs = form.querySelectorAll('[required]');
         requiredInputs.forEach(input => {
@@ -185,20 +175,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 isFormValid = false;
             }
         });
-
         if (!isFormValid) {
             alert('Harap isi semua field yang wajib diisi sebelum generate.');
             return;
         }
-
         document.getElementById('loading-overlay').classList.remove('hidden');
         const formData = new FormData(form);
-        
         try {
             const response = await fetch('/generate', { method: 'POST', body: formData });
             const result = await response.json();
             document.getElementById('loading-overlay').classList.add('hidden');
-
             if (result.success) {
                 document.getElementById('download-link').href = result.download_url;
                 document.getElementById('result-popup').classList.remove('hidden');
@@ -215,9 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('result-popup').classList.add('hidden');
     });
 
-    // --- INITIALIZATION ---
     renderCategories();
     showStep(1);
-
     window.addEventListener('resize', updatePreviewFontSizes);
 });
