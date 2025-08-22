@@ -39,8 +39,8 @@ TEMPLATE_METADATA = {
         'fields': {
             'nama_penerima': {'pos': (600, 450), 'font': 'GreatVibes-Regular.ttf', 'size': 100, 'color': '#333333'},
             'deskripsi': {'pos': (600, 580), 'font': 'Poppins-Regular.ttf', 'size': 24, 'color': '#333333'},
-            'penandatangan_1_nama': {'pos': (600, 780), 'font': 'Poppins-Bold.ttf', 'size': 22, 'color': '#333333'},
-            'penandatangan_1_jabatan': {'pos': (600, 810), 'font': 'Poppins-Regular.ttf', 'size': 18, 'color': '#555555'},
+            'penandatangan_1_nama': {'pos': (600, 750), 'font': 'Poppins-Bold.ttf', 'size': 22, 'color': '#333333'},
+            'penandatangan_1_jabatan': {'pos': (600, 780), 'font': 'Poppins-Regular.ttf', 'size': 18, 'color': '#555555'},
         },
         'logo': None
     },

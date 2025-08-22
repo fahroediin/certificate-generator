@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
         category: null,
         template: null,
     };
+    const sampleNames = ['Ahmad Fauzi', 'Citra Lestari', 'Budi Santoso', 'Dewi Anggraini'];
 
     // DOM Elements
     const steps = document.querySelectorAll('.wizard-step');
@@ -28,6 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
             targetStep.classList.add('active');
         }
         currentStep = stepNumber;
+
+        // **PERBAIKAN UTAMA DI SINI**
+        // Panggil update font size HANYA JIKA kita menampilkan Langkah 3,
+        // karena pada titik ini, container-nya sudah pasti terlihat.
+        if (stepNumber === 3) {
+            // Diberi sedikit timeout untuk memastikan browser selesai rendering
+            setTimeout(updatePreviewFontSizes, 50);
+        }
     }
 
     document.querySelectorAll('.back-btn').forEach(btn => {
@@ -69,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 userSelection.template = card.dataset.template;
                 selectedTemplateInput.value = userSelection.template;
                 renderDetailsAndPreview(userSelection.template);
-                showStep(3);
+                showStep(3); // Pindah ke langkah 3 setelah render
             });
         });
     }
@@ -77,7 +86,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- FUNGSI UNTUK UPDATE FONT SIZE ---
     function updatePreviewFontSizes() {
         const previewWidth = previewContainer.offsetWidth;
-        const baseTemplateWidth = 1200; // Lebar asli gambar template
+        if (previewWidth === 0) return; // Jangan lakukan apa-apa jika container masih tersembunyi
+        
+        const baseTemplateWidth = 1200;
         
         document.querySelectorAll('.preview-text').forEach(textElement => {
             const baseSize = parseFloat(textElement.dataset.baseSize);
@@ -96,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Render Form
         dynamicFieldsContainer.innerHTML = '';
         Object.entries(meta.fields).forEach(([name, config]) => {
-            if (name === 'nama_penerima') return; // Skip name field
+            if (name === 'nama_penerima') return;
             const formGroup = document.createElement('div');
             formGroup.className = 'form-group';
             const labelText = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -124,14 +135,17 @@ document.addEventListener('DOMContentLoaded', function() {
             textOverlay.style.color = config.color;
             textOverlay.style.fontWeight = config.font.includes('Bold') ? 'bold' : 'normal';
             
-            // **FIX DI SINI:** Variabel labelText didefinisikan di dalam scope ini
-            const labelText = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            textOverlay.innerText = name === 'nama_penerima' ? 'Nama Penerima' : `[${labelText}]`;
+            if (name === 'nama_penerima') {
+                textOverlay.innerText = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+            } else {
+                const labelText = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                textOverlay.innerText = `[${labelText}]`;
+            }
             
             previewOverlays.appendChild(textOverlay);
         });
 
-        updatePreviewFontSizes();
+        // **PERUBAHAN:** Panggilan updatePreviewFontSizes() dihapus dari sini
         addLivePreviewListeners();
         checkFormCompletion();
     }
@@ -163,6 +177,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- FORM SUBMISSION ---
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        
+        let isFormValid = true;
+        const requiredInputs = form.querySelectorAll('[required]');
+        requiredInputs.forEach(input => {
+            if (!input.value.trim()) {
+                isFormValid = false;
+            }
+        });
+
+        if (!isFormValid) {
+            alert('Harap isi semua field yang wajib diisi sebelum generate.');
+            return;
+        }
+
         document.getElementById('loading-overlay').classList.remove('hidden');
         const formData = new FormData(form);
         
