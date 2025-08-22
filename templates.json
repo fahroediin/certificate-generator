@@ -27,7 +27,7 @@
       },
       {
         "name": "penandatangan_1_nama",
-        "label": "Nama Penandatangan",
+        "label": "Penyelenggara 1",
         "font": "Poppins-Bold",
         "size": 36,
         "color": "#333333",
@@ -37,7 +37,7 @@
       },
       {
         "name": "penandatangan_1_jabatan",
-        "label": "Jabatan Penandatangan",
+        "label": "Jabatan 1",
         "font": "Poppins",
         "size": 30,
         "color": "#555555",
@@ -55,7 +55,7 @@
     "fields": [
       {
         "name": "nama_penerima",
-        "font": "Great Vibes",
+        "font": "Great Vibes", 
         "size": 120,
         "color": "#c5a47e",
         "align": "center",
@@ -95,7 +95,7 @@
       },
       {
         "name": "penandatangan_1_nama",
-        "label": "Nama Penandatangan Kiri",
+        "label": "Penyelenggara 1",
         "font": "Poppins-Bold",
         "size": 34,
         "color": "#333333",
@@ -105,7 +105,7 @@
       },
       {
         "name": "penandatangan_1_jabatan",
-        "label": "Jabatan Penandatangan Kiri",
+        "label": "Jabatan 1",
         "font": "Poppins",
         "size": 28,
         "color": "#555555",
@@ -115,7 +115,7 @@
       },
       {
         "name": "penandatangan_2_nama",
-        "label": "Nama Penandatangan Kanan",
+        "label": "Penyelenggara 2",
         "font": "Poppins-Bold",
         "size": 34,
         "color": "#333333",
@@ -125,7 +125,7 @@
       },
       {
         "name": "penandatangan_2_jabatan",
-        "label": "Jabatan Penandatangan Kanan",
+        "label": "Jabatan 2",
         "font": "Poppins",
         "size": 28,
         "color": "#555555",
@@ -163,7 +163,7 @@
       },
       {
         "name": "penandatangan_1_nama",
-        "label": "Nama Penandatangan Kiri",
+        "label": "Nama Penyelenggara 1",
         "font": "Poppins-Bold",
         "size": 36,
         "color": "#333333",
@@ -173,7 +173,7 @@
       },
       {
         "name": "penandatangan_1_jabatan",
-        "label": "Jabatan Penandatangan Kiri",
+        "label": "Jabatan 1",
         "font": "Poppins",
         "size": 30,
         "color": "#555555",
@@ -183,7 +183,7 @@
       },
       {
         "name": "penandatangan_2_nama",
-        "label": "Nama Penandatangan Kanan",
+        "label": "Nama Penyelenggara 2",
         "font": "Poppins-Bold",
         "size": 36,
         "color": "#333333",
@@ -193,7 +193,7 @@
       },
       {
         "name": "penandatangan_2_jabatan",
-        "label": "Jabatan Penandatangan Kanan",
+        "label": "Jabatan 2",
         "font": "Poppins",
         "size": 30,
         "color": "#555555",

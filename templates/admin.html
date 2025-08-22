@@ -8,67 +8,89 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="wizard-header">
+    <div class="admin-container">
+        <header class="admin-header">
             <h1>Admin Panel</h1>
             <p>Manajemen Template Sertifikat</p>
-        </div>
+        </header>
 
-        <!-- Bagian Daftar Template -->
-        <section>
-            <h2>Template Tersedia</h2>
-            <div id="template-list" class="admin-template-list">
-                <p>Memuat template...</p>
+        <main class="admin-main">
+            <!-- Bagian Manajemen Kategori -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h2>Manajemen Kategori</h2>
+                    <button type="button" id="add-category-btn" class="button-small">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+                        Tambah Kategori
+                    </button>
+                </div>
+                <div class="admin-card-body" id="category-manager">
+                    <table class="category-table">
+                        <thead>
+                            <tr>
+                                <th>Nama Kategori</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="category-list"></tbody>
+                    </table>
+                </div>
             </div>
-        </section>
 
-        <!-- Bagian Tambah Template Baru -->
-        <section>
-            <h2>Tambah / Edit Template Baru</h2>
-            <form id="add-template-form" class="admin-form">
-                <!-- **EDITOR VISUAL BARU** -->
-                <div class="visual-editor-layout">
-                    <!-- Panel Kiri: Form Isian -->
-                    <div class="editor-form-panel">
-                        <div class="form-group">
-                            <label for="template-id">ID Template (unik, tanpa spasi)</label>
-                            <input type="text" id="template-id" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="template-name">Nama Tampilan</label>
-                            <input type="text" id="template-name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="template-category">Kategori</label>
-                            <input type="text" id="template-category" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="template-image">Gambar Latar Belakang (.png)</label>
-                            <input type="file" id="template-image" accept="image/png" required>
-                        </div>
-                        <hr>
-                        <h3>Fields (Teks Dinamis)</h3>
-                        <div id="fields-list">
-                            <!-- Daftar field akan muncul di sini -->
-                        </div>
-                        <button type="button" id="add-field-btn" class="button secondary">Tambah Field</button>
-                    </div>
+            <!-- Bagian Daftar Template -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h2>Template Tersedia</h2>
+                </div>
+                <div class="admin-card-body">
+                    <div id="template-list" class="admin-template-list"></div>
+                </div>
+            </div>
 
-                    <!-- Panel Kanan: Kanvas Preview & Editor -->
-                    <div class="editor-preview-panel">
-                        <h3>Editor Visual</h3>
-                        <div id="canvas-wrapper">
-                            <canvas id="editor-canvas"></canvas>
-                            <div id="draggable-container">
-                                <!-- Elemen teks yang bisa di-drag akan muncul di sini -->
+            <!-- Bagian Tambah Template Baru -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h2>Tambah Template Baru</h2>
+                </div>
+                <div class="admin-card-body">
+                    <form id="add-template-form" class="admin-form">
+                        <div class="visual-editor-layout">
+                            <div class="editor-form-panel">
+                                <div class="form-key-value">
+                                    <label for="template-name">Nama Tampilan</label>
+                                    <input type="text" id="template-name" placeholder="cth: Lomba Desain Grafis 2024" required>
+                                    
+                                    <label for="template-category">Kategori</label>
+                                    <select id="template-category" required></select>
+                                    
+                                    <label for="template-image">Gambar Latar</label>
+                                    <input type="file" id="template-image" accept="image/png" required>
+                                </div>
+                                <hr>
+                                <h3>Fields (Teks Dinamis)</h3>
+                                <div id="fields-list"></div>
+                                <button type="button" id="add-field-btn" class="button secondary">Tambah Field</button>
+                            </div>
+                            <div class="editor-preview-panel">
+                                <div class="editor-wrapper">
+                                    <div id="ruler-top" class="ruler"></div>
+                                    <div id="ruler-left" class="ruler"></div>
+                                    <div id="canvas-wrapper">
+                                        <canvas id="editor-canvas"></canvas>
+                                        <div id="draggable-container"></div>
+                                        <div id="guide-x" class="guide-line"></div>
+                                        <div id="guide-y" class="guide-line"></div>
+                                        <div id="coords-tooltip" class="coords-tooltip"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                        <hr>
+                        <button type="submit" class="button">Simpan Template</button>
+                    </form>
                 </div>
-                <hr>
-                <button type="submit" class="button">Simpan Template</button>
-            </form>
-        </section>
+            </div>
+        </main>
     </div>
 
     <!-- Modal untuk Preview Template -->
