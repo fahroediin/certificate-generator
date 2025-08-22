@@ -16,9 +16,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const guideX = document.getElementById('guide-x');
     const guideY = document.getElementById('guide-y');
     const coordsTooltip = document.getElementById('coords-tooltip');
+    const formTitle = document.getElementById('form-title');
+    const editModeIdInput = document.getElementById('edit-mode-id');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const saveBtn = document.getElementById('save-btn');
 
     let fields = [];
     let activeFieldId = null;
+    let isEditMode = false;
     const CANVAS_WIDTH = 2000;
     const CANVAS_HEIGHT = 1414;
 
@@ -51,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${cat}</td>
-                        <td><button class="button-small danger delete-category-btn" data-category="${cat}">Hapus</button></td>
+                        <td><button type="button" class="button-small danger delete-category-btn" data-category="${cat}">Hapus</button></td>
                     `;
                     this.listEl.appendChild(row);
                     this.selectEl.innerHTML += `<option value="${cat}">${cat}</option>`;
@@ -132,7 +137,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-
     // ================== MANAJEMEN TEMPLATE ==================
     async function loadTemplates() {
         try {
@@ -154,7 +158,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p>ID: ${template.id}</p>
                         <p>Kategori: ${template.category}</p>
                     </div>
-                    <button class="delete-btn" data-id="${template.id}">&times;</button>
+                    <div class="actions">
+                        <button class="action-btn edit-btn" data-id="${template.id}" title="Edit">✏️</button>
+                        <button class="action-btn delete-btn" data-id="${template.id}" title="Hapus">🗑️</button>
+                    </div>
                 `;
                 templateListContainer.appendChild(card);
             });
@@ -169,12 +176,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const templates = await response.json();
         const template = templates.find(t => t.id === templateId);
         if (!template) return;
-
         modalTitle.innerText = `Preview: ${template.preview_name}`;
         const ctx = modalCanvas.getContext('2d');
         modalCanvas.width = CANVAS_WIDTH;
         modalCanvas.height = CANVAS_HEIGHT;
-
         const bg = new Image();
         bg.src = `/static/templates_base/${template.background_image}`;
         bg.onload = () => {
@@ -183,7 +188,6 @@ document.addEventListener('DOMContentLoaded', function() {
             template.fields.forEach(f => {
                 if (f.name !== 'nama_penerima') sampleData[f.name] = `[Contoh ${f.label}]`;
             });
-
             template.fields.forEach(field => {
                 const text = sampleData[field.name];
                 const isBold = field.font.includes('-Bold');
@@ -196,15 +200,6 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.classList.remove('hidden');
         };
     }
-
-    templateListContainer.addEventListener('click', function(e) {
-        if (e.target.classList.contains('delete-btn')) return;
-        const card = e.target.closest('.admin-template-card');
-        if (card) {
-            showPreview(card.dataset.templateId);
-        }
-    });
-    modal.querySelector('.close-modal-btn').addEventListener('click', () => modal.classList.add('hidden'));
 
     // ================== EDITOR VISUAL & PENGGARIS ==================
     function createRulers() {
@@ -241,37 +236,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    canvasWrapper.addEventListener('mousemove', (e) => {
-        const rect = canvasWrapper.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        guideX.style.left = `${x}px`;
-        guideY.style.top = `${y}px`;
-        coordsTooltip.style.left = `${x}px`;
-        coordsTooltip.style.top = `${y}px`;
-        const realX = Math.round((x / rect.width) * CANVAS_WIDTH);
-        const realY = Math.round((y / rect.height) * CANVAS_HEIGHT);
-        coordsTooltip.innerText = `X: ${realX}, Y: ${realY}`;
-    });
-    canvasWrapper.addEventListener('mouseenter', () => {
-        guideX.style.display = 'block';
-        guideY.style.display = 'block';
-        coordsTooltip.style.display = 'block';
-    });
-    canvasWrapper.addEventListener('mouseleave', () => {
-        guideX.style.display = 'none';
-        guideY.style.display = 'none';
-        coordsTooltip.style.display = 'none';
-    });
-
-    // **PERBAIKAN FLICKER TOOLTIP**
     let tooltipTimeout;
     canvasWrapper.addEventListener('mousemove', (e) => {
         clearTimeout(tooltipTimeout);
         guideX.style.display = 'block';
         guideY.style.display = 'block';
         coordsTooltip.style.display = 'block';
-
         const rect = canvasWrapper.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -288,9 +258,8 @@ document.addEventListener('DOMContentLoaded', function() {
             guideX.style.display = 'none';
             guideY.style.display = 'none';
             coordsTooltip.style.display = 'none';
-        }, 100); // Beri jeda sedikit sebelum menyembunyikan
+        }, 100);
     });
-
 
     function renderEditor() {
         fieldsListContainer.innerHTML = fields.map(f => `
@@ -299,7 +268,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span>${f.font}, ${f.size}px</span>
             </div>
         `).join('');
-
         draggableContainer.innerHTML = '';
         fields.forEach(f => {
             const el = document.createElement('div');
@@ -312,7 +280,6 @@ document.addEventListener('DOMContentLoaded', function() {
             el.style.fontWeight = f.font.includes('-Bold') ? 'bold' : 'normal';
             el.style.fontSize = `${f.size / 25}px`;
             el.style.color = f.color;
-            
             if (f.id === activeFieldId) {
                 el.innerHTML += `
                     <div class="property-panel">
@@ -367,7 +334,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const containerRect = draggableContainer.getBoundingClientRect();
             const x = e.clientX - containerRect.left - offsetX;
             const y = e.clientY - containerRect.top - offsetY;
-            
             const field = fields.find(f => f.id === activeFieldId);
             field.x = Math.round((x / containerRect.width) * CANVAS_WIDTH);
             field.y = Math.round((y / containerRect.height) * CANVAS_HEIGHT);
@@ -406,7 +372,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (fields.some(f => f.name === value)) return 'Nama field sudah digunakan!';
             }
         });
-
         if (name) {
             fields.push({
                 id: Date.now(),
@@ -423,27 +388,37 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const templateName = document.getElementById('template-name').value;
         const templateData = {
-            id: templateName.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now(),
+            id: isEditMode ? editModeIdInput.value : templateName.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now(),
             preview_name: templateName,
             category: document.getElementById('template-category').value,
             fields: fields.map(({ id, ...rest }) => rest)
         };
         const formData = new FormData();
-        formData.append('background_image', document.getElementById('template-image').files[0]);
+        const imageFile = document.getElementById('template-image').files[0];
+        if (imageFile) {
+            formData.append('background_image', imageFile);
+        }
         formData.append('template_data', JSON.stringify(templateData));
-        const response = await fetch('/api/templates/add', { method: 'POST', body: formData });
+        const url = isEditMode ? '/api/templates/update' : '/api/templates/add';
+        const response = await fetch(url, { method: 'POST', body: formData });
         const result = await response.json();
         if (result.success) {
-            Swal.fire('Berhasil!', 'Template telah disimpan.', 'success').then(() => location.reload());
+            Swal.fire('Berhasil!', result.message, 'success').then(() => {
+                exitEditMode();
+                loadTemplates();
+            });
         } else {
             Swal.fire('Gagal!', result.error, 'error');
         }
     });
 
     templateListContainer.addEventListener('click', async function(e) {
-        if (e.target.classList.contains('delete-btn')) {
+        const target = e.target;
+        const card = target.closest('.admin-template-card');
+        if (!card) return;
+        const templateId = card.dataset.templateId;
+        if (target.closest('.delete-btn')) {
             e.stopPropagation();
-            const templateId = e.target.dataset.id;
             const confirmation = await Swal.fire({ title: 'Anda yakin?', text: `Template "${templateId}" akan dihapus!`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, hapus!' });
             if (confirmation.isConfirmed) {
                 const response = await fetch('/api/templates/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: templateId }) });
@@ -455,6 +430,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     Swal.fire('Gagal!', result.error, 'error');
                 }
             }
+        } else if (target.closest('.edit-btn')) {
+            e.stopPropagation();
+            enterEditMode(templateId);
+        } else {
+            showPreview(templateId);
         }
     });
 
@@ -462,6 +442,5 @@ document.addEventListener('DOMContentLoaded', function() {
     CategoryManager.init();
     loadTemplates();
     createRulers();
-    fields.push({ id: Date.now(), name: 'nama_penerima', label: 'Nama Penerima (Otomatis)', font: 'Great Vibes', size: 150, color: '#333333', align: 'center', x: 1000, y: 700 });
-    renderEditor();
+    exitEditMode(); // Panggil ini untuk set state awal
 });
