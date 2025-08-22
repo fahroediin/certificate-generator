@@ -1,0 +1,206 @@
+[
+  {
+    "id": "competition",
+    "preview_name": "Elegant Black Gold",
+    "category": "Competition",
+    "background_image": "competition.png",
+    "fields": [
+      {
+        "name": "nama_penerima",
+        "font": "Great Vibes",
+        "size": 180,
+        "color": "#333333",
+        "align": "center",
+        "x": 1000,
+        "y": 750
+      },
+      {
+        "name": "deskripsi",
+        "label": "Deskripsi Lomba",
+        "font": "Poppins",
+        "size": 40,
+        "color": "#333333",
+        "align": "center",
+        "x": 1000,
+        "y": 980,
+        "maxWidth": 1200
+      },
+      {
+        "name": "penandatangan_1_nama",
+        "label": "Nama Penandatangan",
+        "font": "Poppins-Bold",
+        "size": 36,
+        "color": "#333333",
+        "align": "center",
+        "x": 1000,
+        "y": 1250
+      },
+      {
+        "name": "penandatangan_1_jabatan",
+        "label": "Jabatan Penandatangan",
+        "font": "Poppins",
+        "size": 30,
+        "color": "#555555",
+        "align": "center",
+        "x": 1000,
+        "y": 1300
+      }
+    ]
+  },
+  {
+    "id": "achievement",
+    "preview_name": "Modern Blue",
+    "category": "Achievement",
+    "background_image": "achievement.png",
+    "fields": [
+      {
+        "name": "nama_penerima",
+        "font": "Great Vibes",
+        "size": 120,
+        "color": "#c5a47e",
+        "align": "center",
+        "x": 1000,
+        "y": 720
+      },
+      {
+        "name": "asal_instansi",
+        "label": "Asal Instansi",
+        "font": "Poppins",
+        "size": 36,
+        "color": "#333333",
+        "align": "center",
+        "x": 1000,
+        "y": 830
+      },
+      {
+        "name": "deskripsi",
+        "label": "Deskripsi Pencapaian",
+        "font": "Poppins",
+        "size": 32,
+        "color": "#333333",
+        "align": "center",
+        "x": 1000,
+        "y": 910,
+        "maxWidth": 1400
+      },
+      {
+        "name": "tanggal_acara",
+        "label": "Tanggal Pelaksanaan",
+        "font": "Poppins-Bold",
+        "size": 32,
+        "color": "#333333",
+        "align": "center",
+        "x": 1000,
+        "y": 1000
+      },
+      {
+        "name": "penandatangan_1_nama",
+        "label": "Nama Penandatangan Kiri",
+        "font": "Poppins-Bold",
+        "size": 34,
+        "color": "#333333",
+        "align": "center",
+        "x": 500,
+        "y": 1150
+      },
+      {
+        "name": "penandatangan_1_jabatan",
+        "label": "Jabatan Penandatangan Kiri",
+        "font": "Poppins",
+        "size": 28,
+        "color": "#555555",
+        "align": "center",
+        "x": 500,
+        "y": 1195
+      },
+      {
+        "name": "penandatangan_2_nama",
+        "label": "Nama Penandatangan Kanan",
+        "font": "Poppins-Bold",
+        "size": 34,
+        "color": "#333333",
+        "align": "center",
+        "x": 1500,
+        "y": 1150
+      },
+      {
+        "name": "penandatangan_2_jabatan",
+        "label": "Jabatan Penandatangan Kanan",
+        "font": "Poppins",
+        "size": 28,
+        "color": "#555555",
+        "align": "center",
+        "x": 1500,
+        "y": 1195
+      }
+    ]
+  },
+  {
+    "id": "participation",
+    "preview_name": "Geometric Gold",
+    "category": "Participation",
+    "background_image": "participation.png",
+    "fields": [
+      {
+        "name": "nama_penerima",
+        "font": "Great Vibes",
+        "size": 180,
+        "color": "#333333",
+        "align": "center",
+        "x": 1000,
+        "y": 750
+      },
+      {
+        "name": "deskripsi",
+        "label": "Deskripsi Partisipasi",
+        "font": "Poppins",
+        "size": 40,
+        "color": "#333333",
+        "align": "center",
+        "x": 1000,
+        "y": 940,
+        "maxWidth": 1200
+      },
+      {
+        "name": "penandatangan_1_nama",
+        "label": "Nama Penandatangan Kiri",
+        "font": "Poppins-Bold",
+        "size": 36,
+        "color": "#333333",
+        "align": "center",
+        "x": 760,
+        "y": 1080
+      },
+      {
+        "name": "penandatangan_1_jabatan",
+        "label": "Jabatan Penandatangan Kiri",
+        "font": "Poppins",
+        "size": 30,
+        "color": "#555555",
+        "align": "center",
+        "x": 760,
+        "y": 1130
+      },
+      {
+        "name": "penandatangan_2_nama",
+        "label": "Nama Penandatangan Kanan",
+        "font": "Poppins-Bold",
+        "size": 36,
+        "color": "#333333",
+        "align": "center",
+        "x": 1290,
+        "y": 1080
+      },
+      {
+        "name": "penandatangan_2_jabatan",
+        "label": "Jabatan Penandatangan Kanan",
+        "font": "Poppins",
+        "size": 30,
+        "color": "#555555",
+        "align": "center",
+        "x": 1290,
+        "y": 1130
+      }
+    ]
+  }
+]

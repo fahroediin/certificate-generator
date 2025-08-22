@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Manajemen Template</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="wizard-header">
+            <h1>Admin Panel</h1>
+            <p>Manajemen Template Sertifikat</p>
+        </div>
+
+        <!-- Bagian Daftar Template -->
+        <section>
+            <h2>Template Tersedia</h2>
+            <div id="template-list" class="admin-template-list">
+                <p>Memuat template...</p>
+            </div>
+        </section>
+
+        <!-- Bagian Tambah Template Baru -->
+        <section>
+            <h2>Tambah / Edit Template Baru</h2>
+            <form id="add-template-form" class="admin-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="template-id">ID Template (unik, tanpa spasi, cth: 'lomba_desain_2024')</label>
+                        <input type="text" id="template-id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="template-name">Nama Tampilan (cth: 'Lomba Desain 2024')</label>
+                        <input type="text" id="template-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="template-category">Kategori</label>
+                        <input type="text" id="template-category" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="template-image">Gambar Latar Belakang (.png)</label>
+                        <input type="file" id="template-image" accept="image/png" required>
+                    </div>
+                </div>
+
+                <h3>Fields (Teks Dinamis)</h3>
+                <!-- **STRUKTUR BARU UNTUK FIELDS** -->
+                <div class="fields-wrapper">
+                    <div class="fields-header">
+                        <span>Nama Field</span>
+                        <span>Label Form</span>
+                        <span>Font</span>
+                        <span>Size</span>
+                        <span>Warna</span>
+                        <span>Align</span>
+                        <span>Posisi X</span>
+                        <span>Posisi Y</span>
+                        <span></span>
+                    </div>
+                    <div id="fields-container">
+                        <!-- Fields akan ditambahkan di sini oleh JS -->
+                    </div>
+                </div>
+                <button type="button" id="add-field-btn" class="button secondary">Tambah Field</button>
+                <hr>
+                <button type="submit" class="button">Simpan Template</button>
+            </form>
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

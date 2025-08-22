@@ -1,40 +1,103 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // ===================================================================================
+    // BAGIAN 1: FUNGSI HELPER & GAMBAR
+    // ===================================================================================
+    const imageCache = {};
+
+    function preloadTemplateImages() {
+        TEMPLATES_DATA.forEach(template => {
+            const img = new Image();
+            img.src = `/static/templates_base/${template.background_image}`;
+            imageCache[template.id] = img;
+        });
+    }
+
+    // FUNGSI BARU UNTUK WORD WRAP
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let testLine;
+        let metrics;
+        
+        for (let n = 0; n < words.length; n++) {
+            testLine = line + words[n] + ' ';
+            metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                ctx.fillText(line, x, y);
+                line = words[n] + ' ';
+                y += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, x, y);
+    }
+
+    function drawCertificate(ctx, template, data) {
+        const W = ctx.canvas.width;
+        const H = ctx.canvas.height;
+        const background = imageCache[template.id];
+
+        if (background && background.complete) {
+            ctx.drawImage(background, 0, 0, W, H);
+        } else {
+            background.onload = () => ctx.drawImage(background, 0, 0, W, H);
+        }
+        
+        template.fields.forEach(field => {
+            let text = (field.name === 'nama_penerima') ? data.nama_penerima : (data[field.name] || `[${field.label}]`);
+            const isBold = field.font.includes('-Bold');
+            const fontName = field.font.replace('-Bold', '');
+            
+            ctx.font = `${isBold ? 'bold ' : ''}${field.size}px '${fontName}', sans-serif`;
+            ctx.fillStyle = field.color;
+            ctx.textAlign = field.align;
+            
+            // LOGIKA BARU: Gunakan wrapText jika ada maxWidth
+            if (field.maxWidth && text) {
+                const lineHeight = field.size * 1.2; // Jarak antar baris
+                wrapText(ctx, text, field.x, field.y, field.maxWidth, lineHeight);
+            } else {
+                ctx.fillText(text, field.x, field.y);
+            }
+        });
+    }
+
+    // ===================================================================================
+    // BAGIAN 2: LOGIKA APLIKASI
+    // ===================================================================================
     let currentStep = 1;
     const userSelection = {
         category: null,
-        template: null,
+        templateId: null,
     };
-    const sampleNames = ['Ahmad Fauzi', 'Citra Lestari', 'Budi Santoso', 'Dewi Anggraini'];
+    const sampleNames = ['Ahmad Fauzi', 'Citra Lestari', 'Budi Santoso'];
+    let currentSampleName = '';
+
     const steps = document.querySelectorAll('.wizard-step');
     const categorySelector = document.getElementById('category-selector');
     const templateSelector = document.getElementById('template-selector');
     const dynamicFieldsContainer = document.getElementById('dynamic-fields');
-    const previewContainer = document.getElementById('preview-container');
-    const previewBg = document.getElementById('preview-bg');
-    const previewOverlays = document.getElementById('preview-overlays');
+    const previewCanvas = document.getElementById('preview-canvas');
     const form = document.getElementById('generator-form');
     const uploadSection = document.getElementById('upload-section');
-    const selectedTemplateInput = document.getElementById('selected-template-input');
     const resultPopup = document.getElementById('result-popup');
     const progressBar = document.getElementById('progress-bar');
+    const loadingText = document.getElementById('loading-text');
 
     function showStep(stepNumber) {
         steps.forEach(step => step.classList.remove('active'));
         const targetStep = document.getElementById(`step-${stepNumber}-category`) ||
                          document.getElementById(`step-${stepNumber}-template`) ||
                          document.getElementById(`step-${stepNumber}-details`);
-        if (targetStep) {
-            targetStep.classList.add('active');
-        }
+        if (targetStep) targetStep.classList.add('active');
         currentStep = stepNumber;
 
-        if (stepNumber === 1) {
-            progressBar.style.width = '33%';
-        } else if (stepNumber === 2) {
-            progressBar.style.width = '66%';
-        } else if (stepNumber === 3) {
+        if (stepNumber === 1) progressBar.style.width = '33%';
+        else if (stepNumber === 2) progressBar.style.width = '66%';
+        else if (stepNumber === 3) {
             progressBar.style.width = '100%';
-            setTimeout(updatePreviewFontSizes, 50);
+            drawPreviewCanvas();
         }
     }
 
@@ -47,10 +110,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function renderCategories() {
-        const categories = [...new Set(Object.values(TEMPLATE_METADATA).map(t => t.category))];
-        categorySelector.innerHTML = categories.map(cat => `
-            <div class="category-card" data-category="${cat}">${cat}</div>
-        `).join('');
+        const categories = [...new Set(TEMPLATES_DATA.map(t => t.category))];
+        categorySelector.innerHTML = categories.map(cat => `<div class="category-card" data-category="${cat}">${cat}</div>`).join('');
         document.querySelectorAll('.category-card').forEach(card => {
             card.addEventListener('click', () => {
                 userSelection.category = card.dataset.category;
@@ -61,173 +122,161 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderTemplates(category) {
-        const filteredTemplates = Object.entries(TEMPLATE_METADATA).filter(([_, meta]) => meta.category === category);
-        templateSelector.innerHTML = filteredTemplates.map(([filename, meta]) => `
-            <div class="template-card" data-template="${filename}">
-                <img src="/static/templates_base/${filename}" alt="${meta.preview_name}">
-                <span>${meta.preview_name}</span>
+        const filteredTemplates = TEMPLATES_DATA.filter(t => t.category === category);
+        templateSelector.innerHTML = filteredTemplates.map(template => `
+            <div class="template-card" data-template-id="${template.id}">
+                <img src="/static/templates_base/${template.background_image}" alt="${template.preview_name}">
+                <span>${template.preview_name}</span>
             </div>
         `).join('');
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', () => {
-                userSelection.template = card.dataset.template;
-                selectedTemplateInput.value = userSelection.template;
-                renderDetailsAndPreview(userSelection.template);
+                userSelection.templateId = card.dataset.templateId;
+                renderDetailsForm(userSelection.templateId);
                 showStep(3);
             });
         });
     }
 
-    function updatePreviewFontSizes() {
-        const previewWidth = previewContainer.offsetWidth;
-        if (previewWidth === 0) return;
-        const baseTemplateWidth = 2000;
-        document.querySelectorAll('.preview-text').forEach(textElement => {
-            const baseSize = parseFloat(textElement.dataset.baseSize);
-            if (!isNaN(baseSize)) {
-                const responsiveSize = (baseSize / baseTemplateWidth) * previewWidth;
-                textElement.style.fontSize = `${responsiveSize}px`;
+    function renderDetailsForm(templateId) {
+        currentSampleName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+        const template = TEMPLATES_DATA.find(t => t.id === templateId);
+        const formFields = template.fields.filter(f => f.name !== 'nama_penerima');
+        
+        dynamicFieldsContainer.innerHTML = formFields.map(field => {
+            // LOGIKA BARU: Tentukan tipe input
+            let inputType = 'text';
+            if (field.name.includes('tanggal')) {
+                inputType = 'date';
             }
-        });
-    }
 
-    function renderDetailsAndPreview(templateFile) {
-        const meta = TEMPLATE_METADATA[templateFile];
-        if (!meta) return;
-        dynamicFieldsContainer.innerHTML = '';
-        Object.entries(meta.fields).forEach(([name, config]) => {
-            if (name === 'nama_penerima') return;
-            const formGroup = document.createElement('div');
-            formGroup.className = 'form-group';
-            const labelText = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            formGroup.innerHTML = `
-                <label for="${name}">${labelText}</label>
-                <input type="text" id="${name}" name="${name}" required>
+            return `
+                <div class="form-group">
+                    <label for="${field.name}">${field.label}</label>
+                    <input type="${inputType}" id="${field.name}" name="${field.name}" required>
+                </div>
             `;
-            dynamicFieldsContainer.appendChild(formGroup);
-        });
-        previewBg.src = `/static/templates_base/${templateFile}`;
-        previewOverlays.innerHTML = '';
-        Object.entries(meta.fields).forEach(([name, config]) => {
-            const textOverlay = document.createElement('div');
-            textOverlay.id = `preview-${name}`;
-            textOverlay.className = 'preview-text';
-            textOverlay.dataset.baseSize = config.size;
-            const containerWidth = 2000;
-            const containerHeight = 1414;
-            textOverlay.style.left = `${(config.pos[0] / containerWidth) * 100}%`;
-            textOverlay.style.top = `${(config.pos[1] / containerHeight) * 100}%`;
-            textOverlay.style.fontFamily = config.font.includes('GreatVibes') ? "'Great Vibes', cursive" : "'Poppins', sans-serif";
-            textOverlay.style.color = config.color;
-            textOverlay.style.fontWeight = config.font.includes('Bold') ? 'bold' : 'normal';
-            const align = config.align || 'center';
-            textOverlay.style.textAlign = align;
-            if (align === 'center') {
-                textOverlay.style.transform = 'translateX(-50%)';
-            } else if (align === 'right') {
-                textOverlay.style.transform = 'translateX(-100%)';
-            } else {
-                textOverlay.style.transform = 'translateX(0)';
-            }
-            if (name === 'nama_penerima') {
-                textOverlay.innerText = sampleNames[Math.floor(Math.random() * sampleNames.length)];
-            } else {
-                const labelText = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                textOverlay.innerText = `[${labelText}]`;
-            }
-            previewOverlays.appendChild(textOverlay);
-        });
+        }).join('');
+        
         addLivePreviewListeners();
         checkFormCompletion();
     }
 
+    function drawPreviewCanvas() {
+        if (!userSelection.templateId) return;
+        
+        const template = TEMPLATES_DATA.find(t => t.id === userSelection.templateId);
+        const ctx = previewCanvas.getContext('2d');
+        
+        previewCanvas.width = 2000;
+        previewCanvas.height = 1414;
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        data.nama_penerima = currentSampleName;
+
+        drawCertificate(ctx, template, data);
+    }
+
     function addLivePreviewListeners() {
-        const inputs = dynamicFieldsContainer.querySelectorAll('input[type="text"]');
-        inputs.forEach(input => {
+        dynamicFieldsContainer.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', () => {
-                const previewEl = document.getElementById(`preview-${input.name}`);
-                if (previewEl) {
-                    const labelText = input.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    previewEl.innerText = input.value || `[${labelText}]`;
+                // LOGIKA BARU: Validasi input nama
+                if (input.id.includes('nama') && !input.id.includes('jabatan')) {
+                    // Hanya izinkan huruf dan spasi
+                    input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
                 }
+                drawPreviewCanvas();
                 checkFormCompletion();
             });
         });
     }
 
     function checkFormCompletion() {
-        const inputs = Array.from(dynamicFieldsContainer.querySelectorAll('input[required]'));
-        const allFilled = inputs.every(input => input.value.trim() !== '');
-        if (allFilled) {
-            uploadSection.classList.remove('hidden');
-        } else {
-            uploadSection.classList.add('hidden');
-        }
+        const allFilled = Array.from(dynamicFieldsContainer.querySelectorAll('input[required]'))
+                               .every(input => input.value.trim() !== '');
+        uploadSection.classList.toggle('hidden', !allFilled);
     }
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        let isFormValid = true;
-        const requiredInputs = form.querySelectorAll('[required]');
-        requiredInputs.forEach(input => {
-            if (!input.value.trim()) {
-                isFormValid = false;
-            }
-        });
-
-        // **PERUBAHAN DI SINI: Ganti alert() dengan Swal.fire()**
-        if (!isFormValid) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Harap isi semua field yang wajib diisi sebelum generate.',
-            });
+        const namesFile = document.getElementById('names_file').files[0];
+        if (!namesFile) {
+            Swal.fire({ icon: 'error', title: 'File Belum Dipilih', text: 'Harap pilih file Excel berisi daftar nama.' });
             return;
         }
 
         document.getElementById('loading-overlay').classList.remove('hidden');
-        const formData = new FormData(form);
+        
         try {
-            const response = await fetch('/generate', { method: 'POST', body: formData });
-            const result = await response.json();
-            document.getElementById('loading-overlay').classList.add('hidden');
-            if (result.success) {
-                document.getElementById('download-link').href = result.download_url;
-                const gallery = document.getElementById('preview-gallery');
-                gallery.innerHTML = '';
-                result.preview_urls.forEach(url => {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.alt = 'Preview Sertifikat';
-                    gallery.appendChild(img);
-                });
-                resultPopup.classList.remove('hidden');
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Terjadi Kesalahan',
-                    text: result.error,
-                });
+            const names = await readNamesFromExcel(namesFile);
+            const template = TEMPLATES_DATA.find(t => t.id === userSelection.templateId);
+            const formData = new FormData(form);
+            const commonData = Object.fromEntries(formData.entries());
+            
+            const zip = new JSZip();
+            const gallery = document.getElementById('preview-gallery');
+            gallery.innerHTML = '';
+
+            for (let i = 0; i < names.length; i++) {
+                loadingText.innerText = `Membuat sertifikat ${i + 1} dari ${names.length}...`;
+                const offscreenCanvas = document.createElement('canvas');
+                offscreenCanvas.width = 2000;
+                offscreenCanvas.height = 1414;
+                const ctx = offscreenCanvas.getContext('2d');
+                
+                const certData = { ...commonData, nama_penerima: names[i] };
+                drawCertificate(ctx, template, certData);
+
+                const blob = await new Promise(resolve => offscreenCanvas.toBlob(resolve, 'image/png'));
+                const safeName = names[i].replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                zip.file(`sertifikat_${safeName}.png`, blob);
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(blob);
+                gallery.appendChild(img);
             }
-        } catch (error) {
+
+            loadingText.innerText = 'Membungkus file zip...';
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const downloadUrl = URL.createObjectURL(zipBlob);
+            
+            document.getElementById('download-link').href = downloadUrl;
             document.getElementById('loading-overlay').classList.add('hidden');
-            Swal.fire({
-                icon: 'error',
-                title: 'Koneksi Gagal',
-                text: 'Tidak dapat terhubung ke server. Silakan coba lagi.',
-            });
+            resultPopup.classList.remove('hidden');
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loading-overlay').classList.add('hidden');
+            Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: 'Gagal memproses file. Periksa format Excel Anda.' });
         }
     });
-    
-    resultPopup.querySelector('.close-btn').addEventListener('click', () => {
-        resultPopup.classList.add('hidden');
-    });
 
-    document.getElementById('regenerate-btn').addEventListener('click', () => {
-        resultPopup.classList.add('hidden');
-    });
+    function readNamesFromExcel(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    const names = json.map(row => row[0]).filter(name => name);
+                    resolve(names);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    }
+    
+    resultPopup.querySelector('.close-btn').addEventListener('click', () => resultPopup.classList.add('hidden'));
+    document.getElementById('regenerate-btn').addEventListener('click', () => resultPopup.classList.add('hidden'));
 
     renderCategories();
     showStep(1);
-    window.addEventListener('resize', updatePreviewFontSizes);
+    preloadTemplateImages();
 });

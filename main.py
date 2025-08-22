@@ -1,109 +1,126 @@
 # main.py
-from flask import Flask, render_template, request, jsonify, send_from_directory
-import os
-import time
-import shutil
-from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request, jsonify
 import json
-
-# Import dari file lokal
-from config import UPLOAD_FOLDER, GENERATED_FOLDER, TEMPLATE_FOLDER, TEMPLATE_METADATA
-from utils.file_handler import get_names_from_excel, zip_files
-from utils.certificate_generator import create_certificate
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['GENERATED_FOLDER'] = GENERATED_FOLDER
+app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'templates_base')
 
+# Path ke file database JSON
+TEMPLATES_DB_PATH = os.path.join(os.path.dirname(__file__), 'templates.json')
+
+def read_templates_db():
+    """Membaca data template dari file JSON."""
+    try:
+        with open(TEMPLATES_DB_PATH, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def write_templates_db(data):
+    """Menulis data template ke file JSON."""
+    with open(TEMPLATES_DB_PATH, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+def get_google_fonts_from_templates(templates_data):
+    """Mengekstrak semua nama font unik untuk dimuat oleh Google Fonts."""
+    fonts = set()
+    for template in templates_data:
+        for field in template.get('fields', []):
+            font_name = field.get('font', 'Poppins').replace('-Bold', '')
+            if font_name != 'Great Vibes':
+                fonts.add(font_name)
+    return list(fonts)
+
+# ================== RUTE UNTUK APLIKASI UTAMA ==================
 @app.route('/')
 def index():
-    metadata_json = json.dumps(TEMPLATE_METADATA)
-    return render_template('index.html', metadata=metadata_json)
+    """Menyajikan halaman utama."""
+    templates_data = read_templates_db()
+    required_fonts = get_google_fonts_from_templates(templates_data)
+    return render_template('index.html', templates_data=templates_data, required_fonts=required_fonts)
 
-@app.route('/generate', methods=['POST'])
-def generate():
-    session_id = str(int(time.time()))
-    session_upload_path = os.path.join(app.config['UPLOAD_FOLDER'], session_id)
-    session_generated_path = os.path.join(app.config['GENERATED_FOLDER'], session_id)
-    os.makedirs(session_upload_path, exist_ok=True)
-    os.makedirs(session_generated_path, exist_ok=True)
+# ================== RUTE UNTUK ADMIN PANEL ==================
+@app.route('/admin')
+def admin_panel():
+    """Menyajikan halaman admin."""
+    return render_template('admin.html')
+
+# ================== API UNTUK MENGELOLA TEMPLATE ==================
+@app.route('/api/templates', methods=['GET'])
+def get_templates():
+    """API untuk mendapatkan semua data template."""
+    templates = read_templates_db()
+    return jsonify(templates)
+
+@app.route('/api/templates/add', methods=['POST'])
+def add_template():
+    """API untuk menambah template baru."""
+    if 'background_image' not in request.files:
+        return jsonify({'success': False, 'error': 'File gambar tidak ditemukan'}), 400
+    
+    file = request.files['background_image']
+    template_data_str = request.form.get('template_data')
+
+    if not file or not template_data_str:
+        return jsonify({'success': False, 'error': 'Data tidak lengkap'}), 400
 
     try:
-        form_data = request.form
-        template_file = form_data.get('template')
+        new_template = json.loads(template_data_str)
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         
-        names_file = request.files['names_file']
-        names_filepath = os.path.join(session_upload_path, secure_filename(names_file.filename))
-        names_file.save(names_filepath)
+        new_template['background_image'] = filename
 
-        logo_filepath = None
-        if 'logo' in request.files and request.files['logo'].filename != '':
-            logo_file = request.files['logo']
-            logo_filepath = os.path.join(session_upload_path, secure_filename(logo_file.filename))
-            logo_file.save(logo_filepath)
-
-        names = get_names_from_excel(names_filepath)
-        if not names:
-            return jsonify({'success': False, 'error': 'Tidak ada nama yang ditemukan di file Excel.'}), 400
-
-        template_path = os.path.join(TEMPLATE_FOLDER, template_file)
-        template_meta = TEMPLATE_METADATA[template_file]
-        generated_files_paths = []
-        preview_urls = [] # <-- Variabel baru untuk menyimpan URL preview
-
-        for i, name in enumerate(names):
-            fields_data = {}
-            for field, config in template_meta['fields'].items():
-                fields_data[field] = config.copy()
-                if field == 'nama_penerima':
-                    fields_data[field]['text'] = name
-                else:
-                    fields_data[field]['text'] = form_data.get(field, '')
-            
-            # Gunakan nama yang aman untuk URL
-            safe_name = "".join(c for c in name if c.isalnum() or c in (' ', '.')).rstrip()
-            output_filename = f"sertifikat_{i+1}_{safe_name.replace(' ', '_')}.png"
-            output_path = os.path.join(session_generated_path, output_filename)
-            
-            create_certificate(
-                template_path=template_path,
-                output_path=output_path,
-                fields_data=fields_data,
-                logo_path=logo_filepath,
-                logo_config=template_meta.get('logo')
-            )
-            generated_files_paths.append(output_path)
-            # Buat URL untuk setiap gambar dan tambahkan ke daftar
-            preview_urls.append(f'/generated/{session_id}/{output_filename}')
-
-        zip_filename = f"sertifikat_{session_id}.zip"
-        zip_path = os.path.join(app.config['GENERATED_FOLDER'], zip_filename)
-        zip_files(generated_files_paths, zip_path)
-
-        # Hapus folder upload, tapi JANGAN hapus folder generated dulu
-        shutil.rmtree(session_upload_path)
-
-        # Kirim daftar URL preview ke frontend
-        return jsonify({
-            'success': True,
-            'download_url': f'/download/{zip_filename}',
-            'preview_urls': preview_urls # <-- Kirim daftar URL
-        })
-
+        templates = read_templates_db()
+        # Cek jika ID sudah ada, jika ya, update. Jika tidak, tambah baru.
+        existing_ids = [t['id'] for t in templates]
+        if new_template['id'] in existing_ids:
+             # Logika update bisa ditambahkan di sini jika perlu
+             return jsonify({'success': False, 'error': 'Template dengan ID ini sudah ada.'}), 400
+        
+        templates.append(new_template)
+        write_templates_db(templates)
+        
+        return jsonify({'success': True, 'message': 'Template berhasil ditambahkan.'})
     except Exception as e:
-        shutil.rmtree(session_upload_path)
-        shutil.rmtree(session_generated_path)
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/download/<filename>')
-def download(filename):
-    return send_from_directory(app.config['GENERATED_FOLDER'], filename, as_attachment=True)
+@app.route('/api/templates/delete', methods=['POST'])
+def delete_template():
+    """API untuk menghapus template."""
+    data = request.get_json()
+    template_id = data.get('id')
+    if not template_id:
+        return jsonify({'success': False, 'error': 'ID Template tidak ada'}), 400
 
-# **RUTE BARU** untuk menyajikan gambar preview individual
-@app.route('/generated/<session_id>/<filename>')
-def serve_generated_file(session_id, filename):
-    session_path = os.path.join(app.config['GENERATED_FOLDER'], session_id)
-    return send_from_directory(session_path, filename)
+    templates = read_templates_db()
+    template_to_delete = None
+    
+    # Cari template yang akan dihapus
+    for t in templates:
+        if t['id'] == template_id:
+            template_to_delete = t
+            break
+    
+    if not template_to_delete:
+        return jsonify({'success': False, 'error': 'Template tidak ditemukan'}), 404
+
+    # Hapus file gambar
+    try:
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], template_to_delete['background_image'])
+        if os.path.exists(image_path):
+            os.remove(image_path)
+    except Exception as e:
+        print(f"Warning: Gagal menghapus file gambar {template_to_delete['background_image']}. Error: {e}")
+
+    # Hapus entri dari daftar dan tulis kembali ke file
+    templates_after_delete = [t for t in templates if t['id'] != template_id]
+    write_templates_db(templates_after_delete)
+
+    return jsonify({'success': True, 'message': 'Template berhasil dihapus.'})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

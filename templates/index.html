@@ -3,29 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator Sertifikat Interaktif</title>
+    <title>Generator Sertifikat Dinamis</title>
+    
+    <!-- Memuat Font secara Dinamis -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;700&{% for font in required_fonts %}family={{ font.replace(' ', '+') }}:wght@400;700&{% endfor %}display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- TAMBAHKAN BARIS INI UNTUK SWEETALERT2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="wizard-progress-container">
             <div id="progress-bar" class="progress-bar"></div>
         </div>
-
         <div class="wizard-header">
             <h1>Generator Sertifikat Instan</h1>
             <p>Buat sertifikat profesional dalam beberapa langkah mudah.</p>
         </div>
-
-        <!-- Step 1: Pilih Kategori -->
         <div id="step-1-category" class="wizard-step active">
             <h2>Langkah 1: Pilih Jenis Sertifikat</h2>
             <div id="category-selector" class="category-selector"></div>
         </div>
-
-        <!-- Step 2: Pilih Template -->
         <div id="step-2-template" class="wizard-step">
             <div class="wizard-nav">
                 <button class="back-btn" data-target="step-1-category">&larr; Kembali ke Pilihan Jenis</button>
@@ -33,8 +35,6 @@
             <h2>Langkah 2: Pilih Desain Template</h2>
             <div id="template-selector" class="template-selector"></div>
         </div>
-
-        <!-- Step 3: Isi Detail & Preview -->
         <div id="step-3-details" class="wizard-step">
             <div class="wizard-nav">
                 <button class="back-btn" data-target="step-2-template">&larr; Kembali ke Pilihan Template</button>
@@ -43,7 +43,6 @@
             <div class="details-layout">
                 <div class="form-panel">
                     <form id="generator-form" novalidate>
-                        <input type="hidden" name="template" id="selected-template-input">
                         <div id="dynamic-fields"></div>
                         <div id="upload-section" class="hidden">
                             <div class="form-group">
@@ -57,19 +56,16 @@
                 </div>
                 <div class="preview-panel">
                     <h3>Live Preview</h3>
-                    <div id="preview-container">
-                        <img id="preview-bg" src="" alt="Template Preview">
-                        <div id="preview-overlays"></div>
+                    <div id="preview-wrapper">
+                        <canvas id="preview-canvas"></canvas>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Loading & Result Popup -->
     <div id="loading-overlay" class="hidden">
         <div class="spinner"></div>
-        <p>Sedang memproses... Mohon tunggu.</p>
+        <p id="loading-text">Sedang memproses... Mohon tunggu.</p>
     </div>
     <div id="result-popup" class="hidden">
         <div class="popup-content">
@@ -77,13 +73,14 @@
             <h2>Generasi Berhasil!</h2>
             <p>Silakan periksa hasil di bawah ini sebelum mengunduh.</p>
             <div id="preview-gallery"></div>
-            <a href="#" id="download-link" class="button" download>Download Semua (.zip)</a>
+            <a href="#" id="download-link" class="button" download="sertifikat.zip">Download Semua (.zip)</a>
             <button id="regenerate-btn" class="button secondary">Perbaiki Data</button>
         </div>
     </div>
 
     <script>
-        const TEMPLATE_METADATA = JSON.parse('{{ metadata|safe }}');
+        // PERBAIKAN DI SINI: Menambahkan filter |safe
+        const TEMPLATES_DATA = {{ templates_data|tojson|safe }};
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
