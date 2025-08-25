@@ -14,38 +14,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // FUNGSI BARU UNTUK WORD WRAP
     function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        if (!text) return; // Jangan proses jika teks kosong
         const words = text.split(' ');
         let line = '';
-        let testLine;
-        let metrics;
-        
+        let currentY = y;
+
         for (let n = 0; n < words.length; n++) {
-            testLine = line + words[n] + ' ';
-            metrics = ctx.measureText(testLine);
-            if (metrics.width > maxWidth && n > 0) {
-                ctx.fillText(line, x, y);
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line, x, currentY);
                 line = words[n] + ' ';
-                y += lineHeight;
+                currentY += lineHeight;
             } else {
                 line = testLine;
             }
         }
-        ctx.fillText(line, x, y);
+        ctx.fillText(line, x, currentY);
     }
 
     function drawCertificate(ctx, template, data) {
         const W = ctx.canvas.width;
         const H = ctx.canvas.height;
         const background = imageCache[template.id];
+        
+        ctx.clearRect(0, 0, W, H); // Bersihkan canvas sebelum menggambar
 
         if (background && background.complete) {
             ctx.drawImage(background, 0, 0, W, H);
-        } else {
-            background.onload = () => ctx.drawImage(background, 0, 0, W, H);
+        } else if (background) {
+            background.onload = () => {
+                ctx.drawImage(background, 0, 0, W, H);
+                drawTexts(ctx, template, data); // Gambar ulang teks setelah gambar dimuat
+            };
         }
-        
+        drawTexts(ctx, template, data);
+    }
+    
+    function drawTexts(ctx, template, data) {
         template.fields.forEach(field => {
-            let text = (field.name === 'nama_penerima') ? data.nama_penerima : (data[field.name] || `[${field.label}]`);
+            let text = (field.name === 'nama_penerima') ? data.nama_penerima : (data[field.name] || `[${field.label || field.name}]`);
             const isBold = field.font.includes('-Bold');
             const fontName = field.font.replace('-Bold', '');
             
@@ -57,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (field.maxWidth && text) {
                 const lineHeight = field.size * 1.2; // Jarak antar baris
                 wrapText(ctx, text, field.x, field.y, field.maxWidth, lineHeight);
-            } else {
+            } else if (text) {
                 ctx.fillText(text, field.x, field.y);
             }
         });
@@ -146,14 +155,14 @@ document.addEventListener('DOMContentLoaded', function() {
         dynamicFieldsContainer.innerHTML = formFields.map(field => {
             // LOGIKA BARU: Tentukan tipe input
             let inputType = 'text';
-            if (field.name.includes('tanggal')) {
+            if (field.name.toLowerCase().includes('tanggal')) {
                 inputType = 'date';
             }
 
             return `
                 <div class="form-group">
                     <label for="${field.name}">${field.label}</label>
-                    <input type="${inputType}" id="${field.name}" name="${field.name}" required>
+                    <input type="${inputType}" id="${field.name}" name="${field.name}" placeholder="Masukkan ${field.label}..." required>
                 </div>
             `;
         }).join('');
@@ -182,9 +191,9 @@ document.addEventListener('DOMContentLoaded', function() {
         dynamicFieldsContainer.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', () => {
                 // LOGIKA BARU: Validasi input nama
-                if (input.id.includes('nama') && !input.id.includes('jabatan')) {
-                    // Hanya izinkan huruf dan spasi
-                    input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
+                if (input.id.includes('nama') && !input.id.includes('jabatan') && input.type === 'text') {
+                    // Hanya izinkan huruf, spasi, dan beberapa karakter umum pada nama
+                    input.value = input.value.replace(/[^a-zA-Z\s.,']/g, '');
                 }
                 drawPreviewCanvas();
                 checkFormCompletion();
@@ -210,6 +219,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const names = await readNamesFromExcel(namesFile);
+            if (names.length === 0) {
+                throw new Error("File Excel kosong atau tidak ada nama di kolom pertama.");
+            }
             const template = TEMPLATES_DATA.find(t => t.id === userSelection.templateId);
             const formData = new FormData(form);
             const commonData = Object.fromEntries(formData.entries());
@@ -226,15 +238,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ctx = offscreenCanvas.getContext('2d');
                 
                 const certData = { ...commonData, nama_penerima: names[i] };
-                drawCertificate(ctx, template, certData);
+                drawCertificate(ctx, template, certData); // Menggunakan fungsi draw yang sudah ada
 
                 const blob = await new Promise(resolve => offscreenCanvas.toBlob(resolve, 'image/png'));
-                const safeName = names[i].replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                zip.file(`sertifikat_${safeName}.png`, blob);
+                const safeName = String(names[i]).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                zip.file(`sertifikat_${safe_name || 'peserta'}.png`, blob);
 
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(blob);
-                gallery.appendChild(img);
+                // Tampilkan hanya beberapa preview pertama agar tidak membebani browser
+                if (i < 5) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(blob);
+                    gallery.appendChild(img);
+                }
             }
 
             loadingText.innerText = 'Membungkus file zip...';
@@ -248,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error(error);
             document.getElementById('loading-overlay').classList.add('hidden');
-            Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: 'Gagal memproses file. Periksa format Excel Anda.' });
+            Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: error.message || 'Gagal memproses file. Periksa format Excel Anda.' });
         }
     });
 
@@ -262,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
                     const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    const names = json.map(row => row[0]).filter(name => name);
+                    const names = json.map(row => row[0]).filter(name => name && String(name).trim() !== '');
                     resolve(names);
                 } catch (err) {
                     reject(err);
@@ -276,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
     resultPopup.querySelector('.close-btn').addEventListener('click', () => resultPopup.classList.add('hidden'));
     document.getElementById('regenerate-btn').addEventListener('click', () => resultPopup.classList.add('hidden'));
 
+    // Inisialisasi
     renderCategories();
     showStep(1);
     preloadTemplateImages();

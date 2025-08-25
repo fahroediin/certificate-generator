@@ -55,7 +55,7 @@
     "fields": [
       {
         "name": "nama_penerima",
-        "font": "Great Vibes", 
+        "font": "Great Vibes",
         "size": 120,
         "color": "#c5a47e",
         "align": "center",
@@ -139,68 +139,68 @@
     "id": "participation",
     "preview_name": "Geometric Gold",
     "category": "Participation",
-    "background_image": "participation.png",
     "fields": [
       {
-        "name": "nama_penerima",
+        "align": "center",
+        "color": "#333333",
         "font": "Great Vibes",
-        "size": 180,
-        "color": "#333333",
-        "align": "center",
-        "x": 1000,
-        "y": 750
+        "name": "nama_penerima",
+        "size": 300,
+        "x": 1029,
+        "y": 675
       },
       {
-        "name": "deskripsi",
-        "label": "Deskripsi Partisipasi",
+        "align": "center",
+        "color": "#333333",
         "font": "Poppins",
+        "label": "Deskripsi Partisipasi",
+        "maxWidth": 1200,
+        "name": "deskripsi",
         "size": 40,
-        "color": "#333333",
-        "align": "center",
         "x": 1000,
-        "y": 940,
-        "maxWidth": 1200
+        "y": 940
       },
       {
-        "name": "penandatangan_1_nama",
-        "label": "Nama Penyelenggara 1",
-        "font": "Poppins-Bold",
-        "size": 36,
-        "color": "#333333",
         "align": "center",
+        "color": "#333333",
+        "font": "Poppins-Bold",
+        "label": "Nama Penyelenggara 1",
+        "name": "penandatangan_1_nama",
+        "size": 36,
         "x": 760,
         "y": 1080
       },
       {
-        "name": "penandatangan_1_jabatan",
-        "label": "Jabatan 1",
-        "font": "Poppins",
-        "size": 30,
-        "color": "#555555",
         "align": "center",
+        "color": "#555555",
+        "font": "Poppins",
+        "label": "Jabatan 1",
+        "name": "penandatangan_1_jabatan",
+        "size": 30,
         "x": 760,
         "y": 1130
       },
       {
-        "name": "penandatangan_2_nama",
-        "label": "Nama Penyelenggara 2",
-        "font": "Poppins-Bold",
-        "size": 36,
-        "color": "#333333",
         "align": "center",
+        "color": "#333333",
+        "font": "Poppins-Bold",
+        "label": "Nama Penyelenggara 2",
+        "name": "penandatangan_2_nama",
+        "size": 36,
         "x": 1290,
         "y": 1080
       },
       {
-        "name": "penandatangan_2_jabatan",
-        "label": "Jabatan 2",
-        "font": "Poppins",
-        "size": 30,
-        "color": "#555555",
         "align": "center",
+        "color": "#555555",
+        "font": "Poppins",
+        "label": "Jabatan 2",
+        "name": "penandatangan_2_jabatan",
+        "size": 30,
         "x": 1290,
         "y": 1130
       }
-    ]
+    ],
+    "background_image": "participation.png"
   }
 ]
